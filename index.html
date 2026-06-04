@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Financeiro Pessoal</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --primary: #3182ce;
+            --primary-hover: #2b6cb0;
+            --success: #38a169;
+            --danger: #e53e3e;
+            --danger-hover: #c53030;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        header h1 {
+            font-size: 20px;
+            color: var(--text-main);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 14px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+
+        .card-full {
+            grid-column: span 2;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-full::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+        }
+        
+        .card-full.negative::before { background: var(--danger); }
+        .card-full.positive::before { background: var(--success); }
+
+        .card-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .card-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .card-value.negative { color: var(--danger); }
+        .card-value.positive { color: var(--success); }
+
+        .progress-container {
+            margin-top: 8px;
+            background: #edf2f7;
+            border-radius: 6px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: var(--success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Formulário de Nova Despesa */
+        .form-card {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+
+        .form-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 70px 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-grid-row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background-color: #fff;
+        }
+
+        .btn-add {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background: var(--primary-hover);
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .filter-btn {
+            flex: 1;
+            background: #e2e8f0;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: var(--text-main);
+            color: white;
+        }
+
+        .item-row {
+            background: var(--card-bg);
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.01);
+        }
+
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .day-badge {
+            background: #edf2f7;
+            font-size: 11px;
+            font-weight: 700;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .item-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .item-value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .checkbox-container {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .checkmark {
+            height: 24px;
+            width: 24px;
+            background-color: #edf2f7;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            display: inline-block;
+            position: relative;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+            left: 7px;
+            top: 3px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after { display: block; }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 6px;
+            transition: color 0.2s;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger);
+        }
+
+        .item-row.paid {
+            opacity: 0.5;
+            background-color: #f8fafc;
+        }
+        .item-row.paid .item-name {
+            text-decoration: line-through;
+        }
+
+        .bottom-status {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--text-main);
+            color: white;
+            padding: 12px 16px;
+            text-align: center;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Painel de Monitoramento Financeiro</h1>
+        </header>
+
+        <div class="dashboard">
+            <div id="saldo-card" class="card card-full">
+                <div class="card-title">Saldo Atual Comercial</div>
+                <div id="txt-saldo-atual" class="card-value">-R$ 0,00</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Receitas Totais</div>
+                <div id="txt-total-receitas" class="card-value" style="color: var(--success);">R$ 0,00</div>
+            </div>
+            <div class="card">
+                <div class="card-title">Despesas Totais</div>
+                <div id="txt-total-despesas" class="card-value">R$ 0,00</div>
+            </div>
+            <div class="card card-full">
+                <div class="card-title">Progresso de Pagamentos</div>
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="txt-pago-status">Pago: R$ 0,00</span>
+                    <span id="txt-restante-status">Falta: R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <div class="form-title">Incluir Novo Lançamento</div>
+            <div class="form-grid">
+                <input type="text" id="form-day" placeholder="Dia" maxlength="2">
+                <input type="text" id="form-name" placeholder="Descrição da conta / receita">
+            </div>
+            <div class="form-grid-row2">
+                <input type="number" id="form-value" placeholder="Valor (Ex: 150.50)" step="0.01">
+                <select id="form-type">
+                    <option value="expense">Despesa (Saída)</option>
+                    <option value="income">Receita (Entrada)</option>
+                </select>
+            </div>
+            <button class="btn-add" onclick="addItem()">Adicionar ao Painel</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" id="btn-filter-all" onclick="setFilter('all')">Todas</button>
+            <button class="filter-btn" id="btn-filter-pending" onclick="setFilter('pending')">Pendentes</button>
+            <button class="filter-btn" id="btn-filter-paid" onclick="setFilter('paid')">Pagas</button>
+        </div>
+
+        <div id="items-container"></div>
+    </div>
+
+    <div class="bottom-status">
+        <span>Falta Pagar: <span id="bar-falta" style="color: #fc8181; font-weight: bold;">R$ 0,00</span></span>
+        <span>Pago: <span id="bar-pago" style="color: #68d391; font-weight: bold;">R$ 0,00</span></span>
+    </div>
+
+    <script>
+        // Carga inicial fiel à planilha original
+        const initialData = [
+            { id: 1, type: 'income', day: '-', name: 'SALDO ANTERIOR', value: 1500.00, paid: true },
+            { id: 2, type: 'income', day: '-', name: 'SALÁRIO', value: 10100.00, paid: true },
+            { id: 3, type: 'income', day: '-', name: 'RAS', value: 0.00, paid: true },
+            { id: 4, type: 'expense', day: '4', name: 'UNIMED', value: 1633.13, paid: true },
+            { id: 5, type: 'expense', day: '5', name: 'ALUGUEL VL', value: 1370.00, paid: false },
+            { id: 6, type: 'expense', day: '5', name: 'MAYBI', value: 900.00, paid: true },
+            { id: 7, type: 'expense', day: '5', name: 'PILATES MAY', value: 250.00, paid: true },
+            { id: 8, type: 'expense', day: '5', name: 'GYMPASS (PIX CRAVO)', value: 92.00, paid: true },
+            { id: 9, type: 'expense', day: '7', name: 'GÁS', value: 60.81, paid: true },
+            { id: 10, type: 'expense', day: '7', name: 'CARTÃO MAGALU', value: 661.83, paid: true },
+            { id: 11, type: 'expense', day: '11', name: 'CARTÃO ITAÚ LÉO', value: 0.00, paid: true },
+            { id: 12, type: 'expense', day: '8', name: 'CARTÃO MERCADO PAGO', value: 1604.59, paid: false },
+            { id: 13, type: 'expense', day: '13', name: 'CARTÃO BB', value: 4226.56, paid: false },
+            { id: 14, type: 'expense', day: '9', name: 'IPTU', value: 119.61, paid: true },
+            { id: 15, type: 'expense', day: '10', name: 'CONDOMÍNIO', value: 919.05, paid: false },
+            { id: 16, type: 'expense', day: '10', name: 'ZAMIX', value: 163.88, paid: true },
+            { id: 17, type: 'expense', day: '10', name: 'DR SAÚDE', value: 35.00, paid: false },
+            { id: 18, type: 'expense', day: '10', name: 'CLARO TV', value: 0.00, paid: true },
+            { id: 19, type: 'expense', day: '10', name: 'ALUGUEL MÃE', value: 380.00, paid: false },
+            { id: 20, type: 'expense', day: '10', name: 'CARTÃO BRADESCO', value: 899.11, paid: false },
+            { id: 21, type: 'expense', day: '10', name: 'CARTÃO NUBANK MAY', value: 0.00, paid: false },
+            { id: 22, type: 'expense', day: '10', name: 'CARTÃO MERCADO PAGO MAY', value: 383.52, paid: false },
+            { id: 23, type: 'expense', day: '11', name: 'MEI MENSAL', value: 80.90, paid: false },
+            { id: 24, type: 'expense', day: '11', name: 'MEI PARCELA', value: 96.00, paid: false },
+            { id: 25, type: 'expense', day: '15', name: 'LUZ', value: 366.42, paid: false },
+            { id: 26, type: 'expense', day: '17', name: 'CARTÃO ITAÚ MÃE', value: 381.33, paid: false },
+            { id: 27, type: 'expense', day: '20', name: 'SESI', value: 805.16, paid: true },
+            { id: 28, type: 'expense', day: '20', name: 'ENVIDA RIO', value: 69.00, paid: true },
+            { id: 29, type: 'expense', day: '-', name: 'RAN LUZ', value: 0.00, paid: false },
+            { id: 30, type: 'expense', day: '-', name: 'RAN APPAI', value: 0.00, paid: false },
+            { id: 31, type: 'expense', day: '-', name: 'RAN ZAMIX', value: 0.00, paid: false },
+            { id: 32, type: 'expense', day: '-', name: 'RAN CONDOMINIO', value: 0.00, paid: false },
+            { id: 33, type: 'expense', day: '-', name: 'SKY RODRIGO', value: 0.00, paid: false },
+            { id: 34, type: 'expense', day: '-', name: 'KK 10% LUZ', value: -36.64, paid: false },
+            { id: 35, type: 'expense', day: '-', name: 'KK 10% internet', value: -16.39, paid: false },
+            { id: 36, type: 'expense', day: '-', name: 'KK 10% UNIMED', value: -21.60, paid: false }
+        ];
+
+        let currentFilter = 'all';
+        let financialData = JSON.parse(localStorage.getItem('app_financial_data')) || initialData;
+
+        function formatCurrency(val) {
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function calculateMetrics() {
+            let totalIncome = 0;
+            let totalExpense = 0;
+            let totalPaidExpense = 0;
+
+            financialData.forEach(item => {
+                if (item.type === 'income') {
+                    totalIncome += item.value;
+                } else if (item.type === 'expense') {
+                    totalExpense += item.value;
+                    if (item.paid) totalPaidExpense += item.value;
+                }
+            });
+
+            const currentBalance = totalIncome - totalExpense;
+            const remainingExpense = totalExpense - totalPaidExpense;
+            const progressPercent = totalExpense > 0 ? (totalPaidExpense / totalExpense) * 100 : 0;
+
+            const elSaldo = document.getElementById('txt-saldo-atual');
+            elSaldo.innerText = formatCurrency(currentBalance);
+            document.getElementById('saldo-card').className = 'card card-full ' + (currentBalance < 0 ? 'negative' : 'positive');
+            elSaldo.className = 'card-value ' + (currentBalance < 0 ? 'negative' : 'positive');
+
+            document.getElementById('txt-total-receitas').innerText = formatCurrency(totalIncome);
+            document.getElementById('txt-total-despesas').innerText = formatCurrency(totalExpense);
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('txt-pago-status').innerText = `Pago: ${formatCurrency(totalPaidExpense)}`;
+            document.getElementById('txt-restante-status').innerText = `Falta: ${formatCurrency(remainingExpense)}`;
+            document.getElementById('bar-falta').innerText = formatCurrency(remainingExpense);
+            document.getElementById('bar-pago').innerText = formatCurrency(totalPaidExpense);
+        }
+
+        function toggleItemPaid(id) {
+            financialData = financialData.map(item => item.id === id ? { ...item, paid: !item.paid } : item);
+            saveAndRefresh();
+        }
+
+        function addItem() {
+            const dayInput = document.getElementById('form-day').value.trim();
+            const nameInput = document.getElementById('form-name').value.trim();
+            const valueInput = parseFloat(document.getElementById('form-value').value);
+            const typeInput = document.getElementById('form-type').value;
+
+            if (!nameInput || isNaN(valueInput)) {
+                alert('Por favor, preencha pelo menos a Descrição e o Valor de forma correta.');
+                return;
+            }
+
+            const newItem = {
+                id: Date.now(), // ID único baseado no timestamp
+                type: typeInput,
+                day: dayInput || '-',
+                name: nameInput.toUpperCase(),
+                value: valueInput,
+                paid: typeInput === 'income' ? true : false
+            };
+
+            financialData.push(newItem);
+            
+            // Limpar formulário
+            document.getElementById('form-day').value = '';
+            document.getElementById('form-name').value = '';
+            document.getElementById('form-value').value = '';
+            
+            saveAndRefresh();
+        }
+
+        function deleteItem(id) {
+            if (confirm('Tem certeza de que deseja excluir este item?')) {
+                financialData = financialData.filter(item => item.id !== id);
+                saveAndRefresh();
+            }
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (filter === 'all') document.getElementById('btn-filter-all').classList.add('active');
+            if (filter === 'pending') document.getElementById('btn-filter-pending').classList.add('active');
+            if (filter === 'paid') document.getElementById('btn-filter-paid').classList.add('active');
+            renderList();
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('app_financial_data', JSON.stringify(financialData));
+            calculateMetrics();
+            renderList();
+        }
+
+        function renderList() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+            
+            let filtered = financialData;
+            if (currentFilter === 'pending') filtered = financialData.filter(i => !i.paid && i.type === 'expense');
+            else if (currentFilter === 'paid') filtered = financialData.filter(i => i.paid || i.type === 'income');
+
+            // Ordenar por dia (colocando os sem dia por último)
+            filtered.sort((a, b) => {
+                if (a.day === '-') return 1;
+                if (b.day === '-') return -1;
+                return parseInt(a.day) - parseInt(b.day);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:14px;">Nenhum item encontrado nesta categoria.</div>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const row = document.createElement('div');
+                row.className = `item-row ${item.paid ? 'paid' : ''}`;
+                row.innerHTML = `
+                    <div class="item-left">
+                        <div class="day-badge">${item.day}</div>
+                        <span class="item-name">${item.name}</span>
+                    </div>
+                    <div class="item-right">
+                        <span class="item-value" style="color: ${item.type === 'income' ? 'var(--success)' : 'inherit'}">${formatCurrency(item.value)}</span>
+                        ${item.type === 'expense' ? `
+                            <label class="checkbox-container">
+                                <input type="checkbox" ${item.paid ? 'checked' : ''} onchange="toggleItemPaid(${item.id})">
+                                <span class="checkmark"></span>
+                            </label>
+                        ` : '<span style="color:var(--success); font-size:12px; font-weight:bold;">✔</span>'}
+                        <button class="btn-delete" onclick="deleteItem(${item.id})">×</button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Executar inicialização básica
+        calculateMetrics();
+        renderList();
+    </script>
+</body>
+</html>
