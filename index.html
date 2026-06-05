@@ -22,7 +22,6 @@
         header { margin-bottom: 16px; text-align: center; padding: 10px 0; }
         header h1 { font-size: 20px; color: var(--text-main); }
         
-        /* Seletor de Meses */
         .month-selector-container { margin-bottom: 16px; text-align: center; }
         .month-select { padding: 10px; font-size: 16px; font-weight: bold; border-radius: 8px; border: 1px solid var(--border); width: 100%; max-width: 200px; background: white; cursor: pointer; }
 
@@ -59,7 +58,6 @@
         .item-right { display: flex; align-items: center; gap: 12px; }
         .item-value { font-size: 14px; font-weight: 700; }
 
-        /* Checkbox customizado */
         .checkbox-container { position: relative; cursor: pointer; display: flex; align-items: center; }
         .checkbox-container input { position: absolute; opacity: 0; width: 0; height: 0; }
         .checkmark { height: 24px; width: 24px; background-color: #edf2f7; border: 2px solid #cbd5e0; border-radius: 6px; display: inline-block; position: relative; }
@@ -144,8 +142,8 @@
     </div>
 
     <script>
-        // COLE A SUA URL DO APP DA WEB DO GOOGLE ENTRE AS ASPAS ABAIXO:
-        const GOOGLE_API_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
+        // URL Corrigida e inserida no local de execução correto:
+        const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxUV0wJLu6do9-TdeCq6C3O_ANR2NPeKhmccWa3M5I9lsYrxwQBI5Ijtrw3WtkS09XIJA/exec";
 
         let currentMonth = "";
         let financialData = [];
@@ -160,7 +158,6 @@
                 financialData = result.items;
                 currentMonth = result.currentMonth;
                 
-                // Renderizar o seletor de meses caso ainda não tenha sido montado
                 const select = document.getElementById('month-select');
                 if(select.options.length === 0) {
                     result.months.forEach(m => {
@@ -190,7 +187,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                // Como o 'no-cors' não traz resposta detalhada, aguardamos um breve momento e recarregamos
                 setTimeout(() => { loadData(currentMonth); }, 800);
             } catch (e) {
                 alert("Erro ao enviar comando para a planilha.");
@@ -296,8 +292,8 @@
             });
         }
 
-        // Inicialização
-        if(GOOGLE_API_URL === "https://script.google.com/macros/s/AKfycbxUV0wJLu6do9-TdeCq6C3O_ANR2NPeKhmccWa3M5I9lsYrxwQBI5Ijtrw3WtkS09XIJA/exec") {
+        // Validação e Inicialização Corrigida
+        if(GOOGLE_API_URL === "SUA_URL_DO_APPS_SCRIPT_AQUI" || GOOGLE_API_URL === "") {
             alert("Por favor, configure a variável GOOGLE_API_URL com o seu link do Apps Script dentro do código.");
         } else {
             loadData();
