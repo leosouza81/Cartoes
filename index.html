@@ -1,303 +1,623 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Financeiro Integrado</title>
-    <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: #ffffff;
-            --text-main: #2d3748;
-            --text-muted: #718096;
-            --primary: #3182ce;
-            --success: #38a169;
-            --danger: #e53e3e;
-            --border: #e2e8f0;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Financeiro Pessoal</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --purple: #8b5cf6;
+      --border: #334155;
+    }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; padding-bottom: 80px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        header { margin-bottom: 16px; text-align: center; padding: 10px 0; }
-        header h1 { font-size: 20px; color: var(--text-main); }
-        
-        .month-selector-container { margin-bottom: 16px; text-align: center; }
-        .month-select { padding: 10px; font-size: 16px; font-weight: bold; border-radius: 8px; border: 1px solid var(--border); width: 100%; max-width: 200px; background: white; cursor: pointer; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 24px; }
+    .container { max-width: 1280px; margin: 0 auto; }
 
-        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .card { background: var(--card-bg); padding: 14px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
-        .card-full { grid-column: span 2; text-align: center; position: relative; overflow: hidden; }
-        .card-full::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--primary); }
-        .card-full.negative::before { background: var(--danger); }
-        .card-full.positive::before { background: var(--success); }
-        .card-title { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-        .card-value { font-size: 18px; font-weight: 700; }
-        .card-value.negative { color: var(--danger); }
-        .card-value.positive { color: var(--success); }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    h1 { font-size: 24px; font-weight: 700; }
+    .subtitle { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
 
-        .progress-container { margin-top: 8px; background: #edf2f7; border-radius: 6px; height: 8px; overflow: hidden; }
-        .progress-bar { background: var(--success); height: 100%; width: 0%; transition: width 0.3s ease; }
-        .progress-text { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; justify-content: space-between; }
+    .filters { display: flex; gap: 12px; flex-wrap: wrap; }
+    select { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-size: 14px; outline: none; }
+    select:focus { border-color: var(--primary); }
 
-        .form-card { background: var(--card-bg); padding: 16px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .form-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
-        .form-grid { display: grid; grid-template-columns: 70px 1fr; gap: 10px; margin-bottom: 10px; }
-        .form-grid-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #f8fafc; }
-        
-        .btn-add { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
-        .filters { display: flex; gap: 8px; margin-bottom: 16px; }
-        .filter-btn { flex: 1; background: #e2e8f0; border: none; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .filter-btn.active { background: var(--text-main); color: white; }
+    .alert-box { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #93c5fd; display: none; align-items: center; gap: 8px; }
 
-        .item-row { background: var(--card-bg); padding: 12px 14px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); }
-        .item-left { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
-        .day-badge { background: #edf2f7; font-size: 11px; font-weight: 700; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-        .item-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-right { display: flex; align-items: center; gap: 12px; }
-        .item-value { font-size: 14px; font-weight: 700; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .kpi-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+    .kpi-value { font-size: 24px; font-weight: 700; margin-top: 8px; }
 
-        .checkbox-container { position: relative; cursor: pointer; display: flex; align-items: center; }
-        .checkbox-container input { position: absolute; opacity: 0; width: 0; height: 0; }
-        .checkmark { height: 24px; width: 24px; background-color: #edf2f7; border: 2px solid #cbd5e0; border-radius: 6px; display: inline-block; position: relative; }
-        .checkbox-container input:checked ~ .checkmark { background-color: var(--success); border-color: var(--success); }
-        .checkmark:after { content: ""; position: absolute; display: none; left: 7px; top: 3px; width: 5px; height: 10px; border: solid white; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
-        .checkbox-container input:checked ~ .checkmark:after { display: block; }
-        
-        .btn-delete { background: none; border: none; color: #a0aec0; font-size: 18px; font-weight: bold; cursor: pointer; padding: 0 6px; }
-        .item-row.paid { opacity: 0.5; background-color: #f8fafc; }
-        .item-row.paid .item-name { text-decoration: line-through; }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    .chart-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-height: 350px; display: flex; flex-direction: column; }
+    .chart-card.full-width { grid-column: 1 / -1; min-height: 380px; }
+    .chart-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--text); }
+    .chart-wrapper { flex: 1; position: relative; }
 
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; justify-content: center; align-items: center; font-weight: bold; z-index: 1000; }
-        .bottom-status { position: fixed; bottom: 0; left: 0; right: 0; background: var(--text-main); color: white; padding: 12px 16px; text-align: center; font-size: 13px; display: flex; justify-content: space-between; z-index: 100; }
-    </style>
+    .table-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; overflow: hidden; margin-top: 24px; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+    .search-input { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-size: 14px; width: 250px; outline: none; }
+    .table-container { overflow-x: auto; max-height: 420px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background: #111827; padding: 12px; color: var(--text-muted); position: sticky; top: 0; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); }
+    tr:hover { background: #273549; }
+    .badge { padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .badge-parcelado { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-vista { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-futuro { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .empty-msg { text-align: center; padding: 24px; color: var(--text-muted); }
+  </style>
 </head>
 <body>
 
-    <div id="loading" class="loading-overlay">Sincronizando com o Google Planilhas...</div>
-
-    <div class="container">
-        <header>
-            <h1>Painel Financeiro Pessoal</h1>
-        </header>
-
-        <div class="month-selector-container">
-            <select id="month-select" class="month-select" onchange="changeMonth(this.value)"></select>
-        </div>
-
-        <div class="dashboard">
-            <div id="saldo-card" class="card card-full">
-                <div class="card-title">Saldo Atual Comercial</div>
-                <div id="txt-saldo-atual" class="card-value">-R$ 0,00</div>
-            </div>
-            <div class="card">
-                <div class="card-title">Receitas Totais</div>
-                <div id="txt-total-receitas" class="card-value" style="color: var(--success);">R$ 0,00</div>
-            </div>
-            <div class="card">
-                <div class="card-title">Despesas Totais</div>
-                <div id="txt-total-despesas" class="card-value">R$ 0,00</div>
-            </div>
-            <div class="card card-full">
-                <div class="card-title">Progresso de Pagamentos</div>
-                <div class="progress-container">
-                    <div id="progress-bar" class="progress-bar"></div>
-                </div>
-                <div class="progress-text">
-                    <span id="txt-pago-status">Pago: R$ 0,00</span>
-                    <span id="txt-restante-status">Falta: R$ 0,00</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-card">
-            <div class="form-title">Incluir Novo Lançamento</div>
-            <div class="form-grid">
-                <input type="text" id="form-day" placeholder="Dia" maxlength="2">
-                <input type="text" id="form-name" placeholder="Descrição da conta / receita">
-            </div>
-            <div class="form-grid-row2">
-                <input type="number" id="form-value" placeholder="Valor (Ex: 150.50)" step="0.01">
-                <select id="form-type">
-                    <option value="expense">Despesa (Saída)</option>
-                    <option value="income">Receita (Entrada)</option>
-                </select>
-            </div>
-            <button class="btn-add" onclick="addItem()">Adicionar na Planilha</button>
-        </div>
-
-        <div class="filters">
-            <button class="filter-btn active" id="btn-filter-all" onclick="setFilter('all')">Todas</button>
-            <button class="filter-btn" id="btn-filter-pending" onclick="setFilter('pending')">Pendentes</button>
-            <button class="filter-btn" id="btn-filter-paid" onclick="setFilter('paid')">Pagas</button>
-        </div>
-
-        <div id="items-container"></div>
+<div class="container">
+  <header>
+    <div>
+      <h1>Painel Financeiro Consolidado</h1>
+      <div class="subtitle">Acompanhamento executivo de faturas e compromissos futuros</div>
     </div>
-
-    <div class="bottom-status">
-        <span>Falta Pagar: <span id="bar-falta" style="color: #fc8181; font-weight: bold;">R$ 0,00</span></span>
-        <span>Pago: <span id="bar-pago" style="color: #68d391; font-weight: bold;">R$ 0,00</span></span>
+    <div class="filters">
+      <select id="filterMonth" onchange="renderDashboard()">
+        <option value="ALL">Todo o Histórico (Realizado)</option>
+        <optgroup label="Faturas Fechadas">
+          <option value="07/2026">Julho/2026</option>
+          <option value="08/2026">Agosto/2026</option>
+        </optgroup>
+        <optgroup label="Projeções Futuras (Parcelas)">
+          <option value="09/2026">Setembro/2026 (Projeção)</option>
+          <option value="10/2026">Outubro/2026 (Projeção)</option>
+          <option value="11/2026">Novembro/2026 (Projeção)</option>
+          <option value="12/2026">Dezembro/2026 (Projeção)</option>
+          <option value="01/2027">Janeiro/2027 (Projeção)</option>
+          <option value="02/2027">Fevereiro/2027 (Projeção)</option>
+          <option value="03/2027">Março/2027 (Projeção)</option>
+          <option value="04/2027">Abril/2027 (Projeção)</option>
+          <option value="05/2027">Maio/2027 (Projeção)</option>
+          <option value="06/2027">Junho/2027 (Projeção)</option>
+          <option value="07/2027">Julho/2027 (Projeção)</option>
+          <option value="08/2027">Agosto/2027 (Projeção)</option>
+        </optgroup>
+      </select>
+      <select id="filterCard" onchange="renderDashboard()">
+        <option value="ALL">Todos os Cartões</option>
+      </select>
+      <select id="filterCategory" onchange="renderDashboard()">
+        <option value="ALL">Todas as Categorias</option>
+      </select>
+      <select id="filterInstallment" onchange="renderDashboard()">
+        <option value="ALL">Tipo de Compra: Todas</option>
+        <option value="PARCELADO">Apenas Parceladas</option>
+        <option value="VISTA">Apenas À Vista</option>
+      </select>
     </div>
+  </header>
 
-    <script>
-        // URL Corrigida e inserida no local de execução correto:
-        const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbxUV0wJLu6do9-TdeCq6C3O_ANR2NPeKhmccWa3M5I9lsYrxwQBI5Ijtrw3WtkS09XIJA/exec";
+  <div id="futureAlert" class="alert-box">
+    ℹ️ <strong>Mês Futuro Selecionado:</strong> Exibindo compromissos fixos contratados. <em>Compras à vista ainda não estão consolidadas na fatura deste período.</em>
+  </div>
 
-        let currentMonth = "";
-        let financialData = [];
-        let currentFilter = 'all';
+  <section class="kpis">
+    <div class="kpi-card">
+      <div class="kpi-title" id="kpiTotalTitle">Total Geral</div>
+      <div class="kpi-value" id="kpiTotal" style="color: #60a5fa;">R$ 0,00</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Comprometido Parcelado</div>
+      <div class="kpi-value" id="kpiParcelado" style="color: #fbbf24;">R$ 0,00</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Compras à Vista</div>
+      <div class="kpi-value" id="kpiVista" style="color: #34d399;">R$ 0,00</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">Lançamentos no Período</div>
+      <div class="kpi-value" id="kpiCount" style="color: #f472b6;">0</div>
+    </div>
+  </section>
 
-        async function loadData(month = "") {
-            showLoading(true);
-            try {
-                const response = await fetch(`${GOOGLE_API_URL}?month=${month}`);
-                const result = await response.json();
-                
-                financialData = result.items;
-                currentMonth = result.currentMonth;
-                
-                const select = document.getElementById('month-select');
-                if(select.options.length === 0) {
-                    result.months.forEach(m => {
-                        const opt = document.createElement('option');
-                        opt.value = m;
-                        opt.innerText = m;
-                        select.appendChild(opt);
-                    });
-                }
-                select.value = currentMonth;
+  <section class="charts-grid">
+    <div class="chart-card full-width">
+      <h3>📈 Linha do Tempo: Faturas Fechadas e Projeção de Parcelas Futuras</h3>
+      <div class="chart-wrapper">
+        <canvas id="projectionChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Gastos por Categoria</h3>
+      <div class="chart-wrapper">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Gastos por Cartão</h3>
+      <div class="chart-wrapper">
+        <canvas id="cardChart"></canvas>
+      </div>
+    </div>
+  </section>
 
-                calculateMetrics();
-                renderList();
-            } catch (error) {
-                alert("Erro ao conectar com a Planilha do Google. Verifique a URL configurada.");
+  <section class="table-card">
+    <div class="table-header">
+      <h3 id="tableTitle">Extrato de Lançamentos</h3>
+      <input type="text" id="searchInput" class="search-input" placeholder="Buscar estabelecimento..." onkeyup="renderDashboard()">
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <th>Mês/Ano</th>
+            <th>Cartão</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th class="text-right">Valor</th>
+            <th class="text-center">Parcela / Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+const rawData = [
+  // Mercado Pago Julho/2026
+  [1, "02/07/2026", "07/2026", "Mercado Pago Visa", "MERCADOPAGO ZIYOUINTERMED", "Serviços & Assinaturas", 166.61, "12/21"],
+  [2, "26/09/2025", "07/2026", "Mercado Pago Visa", "BMB VivoEasy Lite", "Serviços & Assinaturas", 30.00, "10/12"],
+  [3, "15/12/2025", "07/2026", "Mercado Pago Visa", "AMAZON PRIME BR", "Serviços & Assinaturas", 13.90, "7/12"],
+  [4, "20/01/2026", "07/2026", "Mercado Pago Visa", "MERCADOLIVRE 2 PRODUTOS", "Compras & Eletrônicos", 223.11, "6/18"],
+  [5, "14/04/2026", "07/2026", "Mercado Pago Visa", "Globo Combo", "Serviços & Assinaturas", 48.90, "3/12"],
+  [6, "18/04/2026", "07/2026", "Mercado Pago Visa", "MP BRAIINSTORM", "Outros / Diversos", 32.33, "3/8"],
+  [7, "23/04/2026", "07/2026", "Mercado Pago Visa", "EC QCONCURSOS", "Serviços & Assinaturas", 31.09, "3/10"],
+  [8, "10/05/2026", "07/2026", "Mercado Pago Visa", "MP MERCADOLIVRE", "Compras & Eletrônicos", 39.95, "2/8"],
+  [9, "12/05/2026", "07/2026", "Mercado Pago Visa", "MERCADOLIVRE MERCADOLIVRE", "Compras & Eletrônicos", 23.09, "2/5"],
+  [10, "03/06/2026", "07/2026", "Mercado Pago Visa", "AMAZON BR *Amazon BR", "Compras & Eletrônicos", 64.23, "1/12"],
+  [11, "11/06/2026", "07/2026", "Mercado Pago Visa", "MERCADOLIVRE TITI", "Compras & Eletrônicos", 65.90, "1/1"],
+  [12, "16/06/2026", "07/2026", "Mercado Pago Visa", "CLARO FLEX", "Serviços & Assinaturas", 14.99, "1/1"],
+  [13, "21/06/2026", "07/2026", "Mercado Pago Visa", "MP LEONARDOSOUZA", "Outros / Diversos", 128.52, "1/1"],
+  [14, "22/06/2026", "07/2026", "Mercado Pago Visa", "MP MELIMAIS", "Serviços & Assinaturas", 19.90, "1/1"],
+  [15, "23/06/2026", "07/2026", "Mercado Pago Visa", "MERCADOLIVRE MERCADOLIVRE", "Compras & Eletrônicos", 71.39, "1/1"],
+  [16, "23/06/2026", "07/2026", "Mercado Pago Visa", "MERCADOLIVRE MERCADOLIVRE", "Compras & Eletrônicos", 19.00, "1/1"],
+  [17, "26/06/2026", "07/2026", "Mercado Pago Visa", "PAYPAL *DYNALISTINC", "Serviços & Assinaturas", 28.30, "1/1"],
+  [18, "26/06/2026", "07/2026", "Mercado Pago Visa", "VIVO EASY VIVO EA", "Serviços & Assinaturas", 38.00, "1/1"],
+  [19, "28/06/2026", "07/2026", "Mercado Pago Visa", "MERCADOLIVRE RECARGASEXPR", "Serviços & Assinaturas", 38.90, "1/1"],
+  [20, "28/06/2026", "07/2026", "Mercado Pago Visa", "EBN SPOTIFY", "Serviços & Assinaturas", 40.90, "1/1"],
+  // BB Julho/2026
+  [21,"05/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",44.70,"1/1"],
+  [22,"06/06/2026","07/2026","Ourocard Visa 8971","ESPETACULO RESTAURANTE RESENDE","Restaurantes & Delivery",83.60,"1/1"],
+  [23,"06/06/2026","07/2026","Ourocard Visa 8971","BELLA EMPADA RESENDEL RESENDE","Restaurantes & Delivery",22.00,"1/1"],
+  [24,"07/06/2026","07/2026","Ourocard Visa 8971","DELICIAS DO QUEIJO RESENDE","Restaurantes & Delivery",81.00,"1/1"],
+  [25,"07/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",67.51,"1/1"],
+  [26,"07/06/2026","07/2026","Ourocard Visa 8971","BrunaFerreira CRUZEIRO","Restaurantes & Delivery",36.70,"1/1"],
+  [27,"07/06/2026","07/2026","Ourocard Visa 8971","AH DA SILVA LEITE ME CRUZEIRO","Restaurantes & Delivery",31.00,"1/1"],
+  [28,"07/06/2026","07/2026","Ourocard Visa 8971","LUAN DA CUNHA SILVA 15 RESENDE","Restaurantes & Delivery",15.00,"1/1"],
+  [29,"09/06/2026","07/2026","Ourocard Visa 8971","M APARECIDA MOREIRAD VOLTA REDONDA","Restaurantes & Delivery",37.53,"1/1"],
+  [30,"09/06/2026","07/2026","Ourocard Visa 8971","CAFE LINDO RIO RIO DE JANEIR","Restaurantes & Delivery",22.40,"1/1"],
+  [31,"11/06/2026","07/2026","Ourocard Visa 8971","MP CHURRASCARIA393 OSASCO","Restaurantes & Delivery",38.50,"1/1"],
+  [32,"12/06/2026","07/2026","Ourocard Visa 8971","FATIMA TORTERIA JALISC RESENDE","Restaurantes & Delivery",15.00,"1/1"],
+  [33,"14/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",72.70,"1/1"],
+  [34,"15/06/2026","07/2026","Ourocard Visa 8971","LARA LACTINIOS RIO DE JANEIR","Restaurantes & Delivery",48.00,"1/1"],
+  [35,"17/06/2026","07/2026","Ourocard Visa 8971","SORVETERIA SOL E NEVE RESENDE","Restaurantes & Delivery",25.90,"1/1"],
+  [36,"18/06/2026","07/2026","Ourocard Visa 8971","ADR COMERCIO DE PRODUT RESENDE","Restaurantes & Delivery",44.00,"1/1"],
+  [37,"20/06/2026","07/2026","Ourocard Visa 8971","RUY BRASOLIN FILHO PASSA QUATRO","Restaurantes & Delivery",147.40,"1/1"],
+  [38,"22/06/2026","07/2026","Ourocard Visa 8971","ESPETACULO RESTAURANTE RESENDE","Restaurantes & Delivery",89.10,"1/1"],
+  [39,"27/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",51.21,"1/1"],
+  [40,"15/06/2026","07/2026","Ourocard Visa 8971","DROGARIAS PACHECO SA RESENDE","Saúde & Farmácia",124.48,"1/1"],
+  [41,"18/06/2026","07/2026","Ourocard Visa 8971","DrogariaModerna23 RESENDE","Saúde & Farmácia",62.94,"1/1"],
+  [42,"19/06/2026","07/2026","Ourocard Visa 8971","DROGARIA CAMPOS ELISE RESENDE","Saúde & Farmácia",115.96,"1/1"],
+  [43,"02/06/2026","07/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",44.34,"1/1"],
+  [44,"02/06/2026","07/2026","Ourocard Visa 8971","HDI SEGUROS SA Sao Paulo","Outros / Diversos",221.15,"1/1"],
+  [45,"05/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",19.62,"1/1"],
+  [46,"05/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",58.36,"1/1"],
+  [47,"05/06/2026","07/2026","Ourocard Visa 8971","BARBEARIA SENA RESENDE","Outros / Diversos",30.00,"1/1"],
+  [48,"05/06/2026","07/2026","Ourocard Visa 8971","POSTO RESENDE RESENDE","Transporte & Combustível",50.00,"1/1"],
+  [49,"06/06/2026","07/2026","Ourocard Visa 8971","DOM ATACADISTA-RESEN RESENDE","Alimentação & Supermercado",989.16,"1/1"],
+  [50,"06/06/2026","07/2026","Ourocard Visa 8971","DOM ATACADISTA-RESEN RESENDE","Alimentação & Supermercado",123.11,"1/1"],
+  [51,"06/06/2026","07/2026","Ourocard Visa 8971","ATACADÃO 207A5 RESENDE","Alimentação & Supermercado",406.45,"1/1"],
+  [52,"07/06/2026","07/2026","Ourocard Visa 8971","VANDERSON MITAMONTE","Outros / Diversos",30.00,"1/1"],
+  [53,"08/06/2026","07/2026","Ourocard Visa 8971","S.M. PRESENTES RESENDE","Compras & Eletrônicos",25.00,"1/1"],
+  [54,"09/06/2026","07/2026","Ourocard Visa 8971","SERV. NUVEM INTELBRAS SAO JOSE","Serviços & Assinaturas",23.50,"1/1"],
+  [55,"10/06/2026","07/2026","Ourocard Visa 8971","VATEL ELETRONICA RESENDE","Compras & Eletrônicos",115.00,"1/1"],
+  [56,"11/06/2026","07/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",26.42,"1/1"],
+  [57,"11/06/2026","07/2026","Ourocard Visa 8971","AUTO POSTO CASACA LTDA GUAPIMIRIM","Transporte & Combustível",19.98,"1/1"],
+  [58,"12/06/2026","07/2026","Ourocard Visa 8971","MALZAC RESENDE","Compras & Eletrônicos",42.00,"1/1"],
+  [59,"18/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",82.97,"1/1"],
+  [60,"20/06/2026","07/2026","Ourocard Visa 8971","PANIFICADORA E CONFEIT PASSA QUATRO","Alimentação & Supermercado",41.50,"1/1"],
+  [61,"20/06/2026","07/2026","Ourocard Visa 8971","CASA DE QUEIJOS FAZEND PASSA QUATRO","Alimentação & Supermercado",18.50,"1/1"],
+  [62,"21/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",71.70,"1/1"],
+  [63,"22/06/2026","07/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",24.69,"1/1"],
+  [64,"23/06/2026","07/2026","Ourocard Visa 8971","AMERICANAS SA RESENDE","Compras & Eletrônicos",30.98,"1/1"],
+  [65,"26/06/2026","07/2026","Ourocard Visa 8971","PETRILI MATERIAL ELETR RESENDE","Compras & Eletrônicos",79.25,"1/1"],
+  [66,"27/06/2026","07/2026","Ourocard Visa 8971","BARBEARIA SENA RESENDE","Outros / Diversos",30.00,"1/1"],
+  [67,"27/06/2026","07/2026","Ourocard Visa 8971","GRAZI LOBO RESENDE","Outros / Diversos",145.00,"1/1"],
+  [68,"27/06/2026","07/2026","Ourocard Visa 8971","ATACADAO 207AS RESENDE","Alimentação & Supermercado",233.04,"1/1"],
+  [69,"29/06/2026","07/2026","Ourocard Visa 8971","AutoCenter Trato RESENDE","Transporte & Combustível",50.00,"1/1"],
+  [70,"04/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",46.14,"1/1"],
+  [71,"15/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",83.43,"1/1"],
+  [72,"19/06/2026","07/2026","Ourocard Visa 8971","ROYAL CENTER RESENDE","Compras & Eletrônicos",129.88,"1/1"],
+  [73,"24/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",46.21,"1/1"],
+  [74,"26/06/2026","07/2026","Ourocard Visa 8971","ROYAL CENTER RESENDE","Compras & Eletrônicos",16.09,"1/1"],
+  [75,"26/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",121.90,"1/1"],
+  [76,"26/06/2026","07/2026","Ourocard Visa 8971","DL UberRides Sao Paulo","Transporte & Combustível",9.95,"1/1"],
+  [77,"03/06/2026","07/2026","Ourocard Visa 8971","RV COMERCIO RESENDE","Compras & Eletrônicos",89.99,"1/1"],
+  [78,"10/06/2026","07/2026","Ourocard Visa 8971","CalcadosKids RESENDE","Compras & Eletrônicos",139.90,"1/1"],
+  [79,"14/06/2026","07/2026","Ourocard Visa 8971","AlineCristina CRUZEIRO","Compras & Eletrônicos",42.00,"1/1"],
+  [80,"19/06/2026","07/2026","Ourocard Visa 8971","MAIS TOP RESENDE RESENDE","Compras & Eletrônicos",65.00,"1/1"],
+  [81,"20/06/2026","07/2026","Ourocard Visa 8971","JO MODAS PASSA QUATRO","Compras & Eletrônicos",53.00,"1/1"],
+  [82,"21/06/2026","07/2026","Ourocard Visa 8971","CACAU SHOW PASSA QUATRO","Alimentação & Supermercado",26.04,"1/1"],
+  [83,"01/06/2026","07/2026","Ourocard Visa 8971","DL GOOGLE YouTube SAO PAULO","Serviços & Assinaturas",53.90,"1/1"],
+  [84,"11/05/2026","07/2026","Ourocard Visa 8971","Jose CarlosMar RESENDE","Outros / Diversos",99.66,"2/3"],
+  [85,"14/05/2026","07/2026","Ourocard Visa 8971","CEA RES 470 E RECIFE","Compras & Eletrônicos",89.99,"2/2"],
+  [86,"23/05/2026","07/2026","Ourocard Visa 8971","GR COMERCIO D RESENDE","Outros / Diversos",74.95,"2/2"],
+  [87,"30/06/2026","07/2026","Ourocard Visa 8971","S.M. PRESENTE RESENDE","Compras & Eletrônicos",81.62,"1/5"],
+  // Bradesco Julho/2026
+  [88,"24/01/2026","07/2026","Bradesco Visa 7046","LITE VivoEasyAnua 06/12","Serviços & Assinaturas",30.00,"6/12"],
+  [89,"19/06/2026","07/2026","Bradesco Visa 7046","TheKingBurguer","Restaurantes & Delivery",32.98,"1/1"],
+  [90,"24/06/2026","07/2026","Bradesco Visa 7046","SEGURO SUPERPROTEGIDO","Outros / Diversos",9.99,"1/1"],
+  // Magalu Julho/2026
+  [91,"25/01/2026","07/2026","Magalu Visa 0189","SAMSUNG NO ITAU","Compras & Eletrônicos",81.00,"18/21"],
+  [92,"29/08/2025","07/2026","Magalu Visa 8091","EBN Canva","Serviços & Assinaturas",24.24,"11/12"],
+  [93,"05/01/2026","07/2026","Magalu Visa 8091","MAGAZINE LUIZA 2000","Compras & Eletrônicos",201.98,"6/10"],
+  [94,"10/02/2026","07/2026","Magalu Visa 8091","LIVRO FACIL Livro","Compras & Eletrônicos",106.15,"5/9"],
+  [95,"06/06/2026","07/2026","Magalu Visa 8091","Google Proton VPN","Serviços & Assinaturas",0.99,"1/1"],
+  [96,"07/06/2026","07/2026","Magalu Visa 8091","Google One","Serviços & Assinaturas",9.99,"1/1"],
+  [97,"25/06/2026","07/2026","Magalu Visa 8091","Google My Finances","Serviços & Assinaturas",99.90,"1/1"],
+  [98,"28/06/2026","07/2026","Magalu Visa 8091","Google Camera Control","Serviços & Assinaturas",9.49,"1/1"],
+  [99,"14/12/2025","07/2026","Magalu Visa 3230","HTM JornadaLooker50","Serviços & Assinaturas",23.68,"7/12"],
+  // Itaú Julho/2026
+  [100,"13/06/2026","07/2026","Itaú Visa 5902","MARCONDES E FI","Compras & Eletrônicos",204.89,"1/10"],
+  [101,"17/06/2026","07/2026","Itaú Visa 5902","HEALTH RESENDE","Saúde & Farmácia",113.49,"1/10"],
+  [102,"23/06/2026","07/2026","Itaú Visa 5902","CINESHOW RESENDE","Lazer & Entretenimento",37.50,"1/6"],
+  [103,"23/06/2026","07/2026","Itaú Visa 5902","CINESHOW RESENDE BR","Lazer & Entretenimento",38.00,"1/1"],
+  [104,"12/06/2026","07/2026","Itaú Visa 5902","ANTHROPIC CLAUDE SUB","Serviços & Assinaturas",117.67,"1/1"],
+  [105,"25/06/2026","07/2026","Itaú Visa 5902","ANTHROPIC.COM","Serviços & Assinaturas",27.55,"1/1"],
+  [106,"25/06/2026","07/2026","Itaú Visa 5902","REPASSE IOF INTERNACIONAL","Outros / Diversos",5.07,"1/1"],
+  // BB Agosto/2026
+  [107,"07/07/2026","08/2026","Ourocard Visa 8971","CONVENIENCIA XALE BARRA DO PIRA","Restaurantes & Delivery",10.50,"1/1"],
+  [108,"10/07/2026","08/2026","Ourocard Visa 8971","REFUGIO PIRAI","Restaurantes & Delivery",23.00,"1/1"],
+  [109,"13/07/2026","08/2026","Ourocard Visa 8971","PICANHA AO ALHO SEROPEDICA","Restaurantes & Delivery",19.00,"1/1"],
+  [110,"14/07/2026","08/2026","Ourocard Visa 8971","VALENCA Restaurante","Restaurantes & Delivery",73.39,"1/1"],
+  [111,"19/07/2026","08/2026","Ourocard Visa 8971","AntonioCarlos LORENA","Restaurantes & Delivery",20.00,"1/1"],
+  [112,"26/07/2026","08/2026","Ourocard Visa 8971","DELICIAS DO QUEIJO RESENDE","Restaurantes & Delivery",32.37,"1/1"],
+  [113,"26/07/2026","08/2026","Ourocard Visa 8971","MARIANO AUGUSTO RODRIG RESENDE","Restaurantes & Delivery",15.00,"1/1"],
+  [114,"27/07/2026","08/2026","Ourocard Visa 8971","PADOCA RESENDE","Restaurantes & Delivery",54.00,"1/1"],
+  [115,"28/07/2026","08/2026","Ourocard Visa 8971","MP CHURRASCARIA393 VASSOURAS","Restaurantes & Delivery",35.00,"1/1"],
+  [116,"21/07/2026","08/2026","Ourocard Visa 8971","DROGARIA PETILLO LTDA ANGRA DOS REI","Saúde & Farmácia",174.47,"1/1"],
+  [117,"30/07/2026","08/2026","Ourocard Visa 8971","DROGARIA CAMPOS ELISE RESENDE","Saúde & Farmácia",253.47,"1/1"],
+  [118,"01/07/2026","08/2026","Ourocard Visa 8971","Google YouTube SAO PAULO","Serviços & Assinaturas",53.90,"1/1"],
+  [119,"02/07/2026","08/2026","Ourocard Visa 8971","HDI SEGUROS SA Sao Paulo","Outros / Diversos",221.15,"1/1"],
+  [120,"03/07/2026","08/2026","Ourocard Visa 8971","PADARIA NS DE FATIMA RESENDE","Alimentação & Supermercado",13.07,"1/1"],
+  [121,"03/07/2026","08/2026","Ourocard Visa 8971","RenascencaModas RESENDE","Compras & Eletrônicos",22.00,"1/1"],
+  [122,"03/07/2026","08/2026","Ourocard Visa 8971","BADY FERRAGENS E FERR RESENDE","Compras & Eletrônicos",78.50,"1/1"],
+  [123,"07/07/2026","08/2026","Ourocard Visa 8971","Padaria Nossa Senho BARRA MANSA","Alimentação & Supermercado",32.00,"1/1"],
+  [124,"08/07/2026","08/2026","Ourocard Visa 8971","ATACADAO 207AS RESENDE","Alimentação & Supermercado",1042.31,"1/1"],
+  [125,"10/07/2026","08/2026","Ourocard Visa 8971","SERV. NUVEM INTELBRAS SAO JOSE","Serviços & Assinaturas",23.50,"1/1"],
+  [126,"10/07/2026","08/2026","Ourocard Visa 8971","POSTO MONTE CASTELO RESENDE","Transporte & Combustível",51.57,"1/1"],
+  [127,"10/07/2026","08/2026","Ourocard Visa 8971","AUTO POSTO NOSSA SENHO MARICA","Transporte & Combustível",71.45,"1/1"],
+  [128,"10/07/2026","08/2026","Ourocard Visa 8971","REFUGIO P. PIRAI","Restaurantes & Delivery",50.00,"1/1"],
+  [129,"12/07/2026","08/2026","Ourocard Visa 8971","POSTO JR VOLTA REDONDA","Transporte & Combustível",81.37,"1/1"],
+  [130,"18/07/2026","08/2026","Ourocard Visa 8971","POSTO MONTE CASTELO RESENDE","Transporte & Combustível",52.65,"1/1"],
+  [131,"18/07/2026","08/2026","Ourocard Visa 8971","ATACADAO 207AS RESENDE","Alimentação & Supermercado",161.33,"1/1"],
+  [132,"21/07/2026","08/2026","Ourocard Visa 8971","MATHEUS HEN RESENDE","Outros / Diversos",40.00,"1/1"],
+  [133,"21/07/2026","08/2026","Ourocard Visa 8971","POSTO ROMA LTDA VOLTA REDONDA","Transporte & Combustível",51.26,"1/1"],
+  [134,"22/07/2026","08/2026","Ourocard Visa 8971","POSTO ROMA LTDA VOLTA REDONDA","Transporte & Combustível",64.68,"1/1"],
+  [135,"26/07/2026","08/2026","Ourocard Visa 8971","ANA PAULA D ITAMONTE","Outros / Diversos",25.00,"1/1"],
+  [136,"27/07/2026","08/2026","Ourocard Visa 8971","POSTO DAS PALMEIRAS BM BARRA MANSA","Transporte & Combustível",81.37,"1/1"],
+  [137,"31/07/2026","08/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",35.84,"1/1"],
+  [138,"31/07/2026","08/2026","Ourocard Visa 8971","SPANI ATACADISTA RESENDE","Alimentação & Supermercado",139.72,"1/1"],
+  [139,"02/08/2026","08/2026","Ourocard Visa 8971","HDI SEGUROS SA Sao Paulo","Outros / Diversos",221.15,"1/1"],
+  [140,"31/07/2026","08/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",29.08,"1/1"],
+  [141,"31/07/2026","08/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",101.40,"1/1"],
+  [142,"01/07/2026","08/2026","Ourocard Visa 8971","DL UberRides Sao Paulo","Transporte & Combustível",19.98,"1/1"],
+  [143,"17/07/2026","08/2026","Ourocard Visa 8971","DL UberRides Sao Paulo","Transporte & Combustível",13.96,"1/1"],
+  [144,"19/07/2026","08/2026","Ourocard Visa 8971","AlineCristina CRUZEIRO","Compras & Eletrônicos",69.00,"1/1"],
+  [145,"24/07/2026","08/2026","Ourocard Visa 8971","Renata Moreira MACAE","Compras & Eletrônicos",79.80,"1/1"],
+  [146,"01/08/2026","08/2026","Ourocard Visa 8971","Google YouTube SAO PAULO","Serviços & Assinaturas",53.90,"1/1"],
+  [147,"11/05/2026","08/2026","Ourocard Visa 8971","JoseCarlosMar RESENDE","Outros / Diversos",99.66,"3/3"],
+  [148,"30/06/2026","08/2026","Ourocard Visa 8971","S.M. PRESENTE RESENDE","Compras & Eletrônicos",81.59,"2/5"],
+  [149,"02/07/2026","08/2026","Ourocard Visa 8971","FARMACIA CONF RESENDE","Saúde & Farmácia",548.30,"1/2"],
+  [150,"03/07/2026","08/2026","Ourocard Visa 8971","MAIS TOP RESE RESENDE","Compras & Eletrônicos",77.50,"1/2"],
+  [151,"31/07/2026","08/2026","Ourocard Visa 8971","WORLD TENIS RESENDE","Compras & Eletrônicos",122.02,"1/5"],
+  // Mercado Pago Agosto/2026
+  [152,"02/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOPAGO ZIYOUINTERMED","Serviços & Assinaturas",166.61,"13/21"],
+  [153,"26/09/2025","08/2026","Mercado Pago Visa 9695","BMB VivoEasy Lite","Serviços & Assinaturas",30.00,"11/12"],
+  [154,"15/12/2025","08/2026","Mercado Pago Visa 9695","AMAZON PRIME BR","Serviços & Assinaturas",13.90,"8/12"],
+  [155,"20/01/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE 2PRODUTOS","Compras & Eletrônicos",223.11,"7/18"],
+  [156,"14/04/2026","08/2026","Mercado Pago Visa 9695","Globo Combo","Serviços & Assinaturas",48.90,"4/12"],
+  [157,"18/04/2026","08/2026","Mercado Pago Visa 9695","MP BRAIINSTORM","Outros / Diversos",32.33,"4/8"],
+  [158,"23/04/2026","08/2026","Mercado Pago Visa 9695","EC QCONCURSOS","Serviços & Assinaturas",31.09,"4/10"],
+  [159,"10/05/2026","08/2026","Mercado Pago Visa 9695","MP MERCADOLIVRE","Compras & Eletrônicos",39.95,"3/8"],
+  [160,"12/05/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE MERCADOLIVRE","Compras & Eletrônicos",23.09,"3/5"],
+  [161,"03/06/2026","08/2026","Mercado Pago Visa 9695","AMAZON BR Amazon BR","Compras & Eletrônicos",64.16,"2/12"],
+  [162,"03/07/2026","08/2026","Mercado Pago Visa 9695","AMAZONMKTPLC GAMESIRTE","Compras & Eletrônicos",46.50,"1/6"],
+  [163,"08/07/2026","08/2026","Mercado Pago Visa 9695","AMAZONMKTPLC GRUPOMULT","Compras & Eletrônicos",58.90,"1/10"],
+  [164,"10/07/2026","08/2026","Mercado Pago Visa 9695","MP CONECTCAR","Transporte & Combustível",16.34,"1/1"],
+  [165,"10/07/2026","08/2026","Mercado Pago Visa 9695","MP CONECTCAR","Transporte & Combustível",6.60,"1/1"],
+  [166,"16/07/2026","08/2026","Mercado Pago Visa 9695","CLARO FLEX","Serviços & Assinaturas",34.99,"1/1"],
+  [167,"21/07/2026","08/2026","Mercado Pago Visa 9695","CLAROTVMAIS Claro Tv","Serviços & Assinaturas",99.90,"1/1"],
+  [168,"22/07/2026","08/2026","Mercado Pago Visa 9695","MP MELIMAIS","Serviços & Assinaturas",9.90,"1/1"],
+  [169,"24/07/2026","08/2026","Mercado Pago Visa 9695","AMAZON BR Amazon BR","Compras & Eletrônicos",29.89,"1/1"],
+  [170,"26/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE MERCADOLIVRE","Compras & Eletrônicos",37.92,"1/1"],
+  [171,"26/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE*JJOIASPREMIU","Compras & Eletrônicos",24.96,"1/1"],
+  [172,"26/07/2026","08/2026","Mercado Pago Visa 9695","VIVO EASY VIVO EA","Serviços & Assinaturas",38.00,"1/1"],
+  [173,"28/07/2026","08/2026","Mercado Pago Visa 9695","EBN SPOTIFY","Serviços & Assinaturas",40.90,"1/1"]
+];
+
+const futureMonthsList = [
+  '09/2026', '10/2026', '11/2026', '12/2026',
+  '01/2027', '02/2027', '03/2027', '04/2027',
+  '05/2027', '06/2027', '07/2027', '08/2027'
+];
+
+let catChart, cardChart, projectionChart;
+
+function isParcelado(parcela) {
+  return parcela && parcela !== '1/1' && parcela !== 'Única' && parcela !== '';
+}
+
+function formatBRL(val) {
+  return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Gera lista de registros futuros com base no último status conhecido
+function generateFutureData(targetMonth) {
+  const futureIndex = futureMonthsList.indexOf(targetMonth);
+  if (futureIndex === -1) return [];
+
+  const parcelasAtivas = rawData.filter(r => isParcelado(r[7]) && (r[2] === '08/2026' || (r[2] === '07/2026' && !['Mercado Pago Visa 9695', 'Ourocard Visa 8971'].includes(r[3]))));
+  
+  const futureItems = [];
+  parcelasAtivas.forEach((r, idx) => {
+    const [atualStr, totalStr] = r[7].split('/');
+    const atual = parseInt(atualStr);
+    const total = parseInt(totalStr);
+    const offset = futureIndex + 1;
+    const novaParcelaNum = atual + offset;
+
+    if (novaParcelaNum <= total) {
+      futureItems.push([
+        `FUT-${idx + 1}`,
+        `01/${targetMonth}`,
+        targetMonth,
+        r[3],
+        r[4],
+        r[5],
+        r[6],
+        `${novaParcelaNum}/${total}`
+      ]);
+    }
+  });
+
+  return futureItems;
+}
+
+function initFilters() {
+  const cards = [...new Set(rawData.map(r => r[3]))].sort();
+  const categories = [...new Set(rawData.map(r => r[5]))].sort();
+
+  const cardSelect = document.getElementById('filterCard');
+  cards.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    cardSelect.appendChild(opt);
+  });
+
+  const catSelect = document.getElementById('filterCategory');
+  categories.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c; opt.textContent = c;
+    catSelect.appendChild(opt);
+  });
+}
+
+function renderDashboard() {
+  const fMonth = document.getElementById('filterMonth').value;
+  const fCard = document.getElementById('filterCard').value;
+  const fCat = document.getElementById('filterCategory').value;
+  const fInst = document.getElementById('filterInstallment').value;
+  const search = document.getElementById('searchInput').value.toLowerCase();
+
+  const isFuture = futureMonthsList.includes(fMonth);
+  document.getElementById('futureAlert').style.display = isFuture ? 'flex' : 'none';
+
+  let dataSource = [];
+  if (isFuture) {
+    dataSource = generateFutureData(fMonth);
+    document.getElementById('kpiTotalTitle').textContent = "Total Comprometido (Fixo)";
+  } else if (fMonth === 'ALL') {
+    dataSource = rawData;
+    document.getElementById('kpiTotalTitle').textContent = "Total Geral";
+  } else {
+    dataSource = rawData.filter(r => r[2] === fMonth);
+    document.getElementById('kpiTotalTitle').textContent = "Total Geral";
+  }
+
+  const filtered = dataSource.filter(r => {
+    const matchCard = fCard === 'ALL' || r[3] === fCard;
+    const matchCat = fCat === 'ALL' || r[5] === fCat;
+    const matchSearch = r[4].toLowerCase().includes(search);
+    
+    let matchInst = true;
+    if (fInst === 'PARCELADO') matchInst = isParcelado(r[7]);
+    if (fInst === 'VISTA') matchInst = !isParcelado(r[7]);
+
+    return matchCard && matchCat && matchSearch && matchInst;
+  });
+
+  // KPIs
+  const total = filtered.reduce((acc, r) => acc + r[6], 0);
+  const totalParcelado = filtered.filter(r => isParcelado(r[7])).reduce((acc, r) => acc + r[6], 0);
+  const totalVista = isFuture ? 0 : (total - totalParcelado);
+  const count = filtered.length;
+
+  document.getElementById('kpiTotal').textContent = formatBRL(total);
+  document.getElementById('kpiParcelado').textContent = formatBRL(totalParcelado);
+  document.getElementById('kpiVista').textContent = isFuture ? "Não consolidada" : formatBRL(totalVista);
+  document.getElementById('kpiCount').textContent = count;
+
+  // Render Table
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  if (isFuture && fInst === 'VISTA') {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-msg">ℹ️ Ainda não há compras à vista consolidadas na fatura de ${fMonth}. Elas aparecerão conforme o fechamento da fatura.</td></tr>`;
+  } else if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-msg">Nenhum lançamento encontrado para os filtros selecionados.</td></tr>`;
+  } else {
+    filtered.forEach(r => {
+      const tr = document.createElement('tr');
+      const badgeClass = isFuture ? 'badge-futuro' : (isParcelado(r[7]) ? 'badge-parcelado' : 'badge-vista');
+      const statusText = isFuture ? `${r[7]} (Projeção)` : r[7];
+      tr.innerHTML = `
+        <td>${r[0]}</td>
+        <td>${r[1]}</td>
+        <td>${r[2]}</td>
+        <td>${r[3]}</td>
+        <td>${r[4]}</td>
+        <td>${r[5]}</td>
+        <td class="text-right">${formatBRL(r[6])}</td>
+        <td class="text-center"><span class="badge ${badgeClass}">${statusText}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Agregações para Gráficos
+  const catMap = {};
+  const cardMap = {};
+
+  filtered.forEach(r => {
+    catMap[r[5]] = (catMap[r[5]] || 0) + r[6];
+    cardMap[r[3]] = (cardMap[r[3]] || 0) + r[6];
+  });
+
+  updateCharts(catMap, cardMap, fMonth);
+}
+
+function updateCharts(catData, cardData, selectedMonth) {
+  const catCtx = document.getElementById('categoryChart').getContext('2d');
+  const cardCtx = document.getElementById('cardChart').getContext('2d');
+  const projCtx = document.getElementById('projectionChart').getContext('2d');
+
+  if (catChart) catChart.destroy();
+  if (cardChart) cardChart.destroy();
+  if (projectionChart) projectionChart.destroy();
+
+  // Timeline com Realizado (Jul e Ago) + Projeções
+  const timelineLabels = ['07/2026', '08/2026', ...futureMonthsList];
+  const timelineData = timelineLabels.map(m => {
+    if (m === '07/2026') return rawData.filter(r => r[2] === '07/2026').reduce((a, b) => a + b[6], 0);
+    if (m === '08/2026') return rawData.filter(r => r[2] === '08/2026').reduce((a, b) => a + b[6], 0);
+    const fut = generateFutureData(m);
+    return fut.reduce((a, b) => a + b[6], 0);
+  });
+
+  const bgColors = timelineLabels.map(m => {
+    if (m === selectedMonth) return '#ec4899';
+    return (m === '07/2026' || m === '08/2026') ? '#3b82f6' : '#f59e0b';
+  });
+
+  projectionChart = new Chart(projCtx, {
+    type: 'bar',
+    data: {
+      labels: timelineLabels,
+      datasets: [{
+        label: 'Total da Fatura / Comprometido (R$)',
+        data: timelineData,
+        backgroundColor: bgColors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const labelMonth = context.label;
+              const prefix = (labelMonth === '07/2026' || labelMonth === '08/2026') ? 'Fatura Fechada: ' : 'Parcelas Fixas Futuras: ';
+              return prefix + formatBRL(context.raw);
             }
-            showLoading(false);
+          }
         }
-
-        async function sendAction(payload) {
-            showLoading(true);
-            payload.month = currentMonth;
-            try {
-                await fetch(GOOGLE_API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                setTimeout(() => { loadData(currentMonth); }, 800);
-            } catch (e) {
-                alert("Erro ao enviar comando para a planilha.");
-                showLoading(false);
-            }
+      },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+        y: {
+          ticks: {
+            color: '#94a3b8',
+            callback: function(value) { return 'R$ ' + value; }
+          },
+          grid: { color: '#334155' }
         }
+      }
+    }
+  });
 
-        function formatCurrency(val) { return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-        function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+  // Gráfico Donut de Categorias
+  catChart = new Chart(catCtx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catData).length > 0 ? Object.keys(catData) : ['Sem dados'],
+      datasets: [{
+        data: Object.keys(catData).length > 0 ? Object.values(catData) : [1],
+        backgroundColor: Object.keys(catData).length > 0 ? ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b'] : ['#334155'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'right', labels: { color: '#94a3b8', boxWidth: 10 } }
+      }
+    }
+  });
 
-        function calculateMetrics() {
-            let totalIncome = 0, totalExpense = 0, totalPaidExpense = 0;
-            financialData.forEach(item => {
-                if (item.type === 'income') totalIncome += item.value;
-                else {
-                    totalExpense += item.value;
-                    if (item.paid) totalPaidExpense += item.value;
-                }
-            });
-            const currentBalance = totalIncome - totalExpense;
-            const remainingExpense = totalExpense - totalPaidExpense;
-            const progressPercent = totalExpense > 0 ? (totalPaidExpense / totalExpense) * 100 : 0;
+  // Gráfico de Barras de Cartões
+  cardChart = new Chart(cardCtx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(cardData),
+      datasets: [{
+        label: 'Total (R$)',
+        data: Object.values(cardData),
+        backgroundColor: '#3b82f6',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+      }
+    }
+  });
+}
 
-            const elSaldo = document.getElementById('txt-saldo-atual');
-            elSaldo.innerText = formatCurrency(currentBalance);
-            document.getElementById('saldo-card').className = 'card card-full ' + (currentBalance < 0 ? 'negative' : 'positive');
-            elSaldo.className = 'card-value ' + (currentBalance < 0 ? 'negative' : 'positive');
+initFilters();
+renderDashboard();
+</script>
 
-            document.getElementById('txt-total-receitas').innerText = formatCurrency(totalIncome);
-            document.getElementById('txt-total-despesas').innerText = formatCurrency(totalExpense);
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-            document.getElementById('txt-pago-status').innerText = `Pago: ${formatCurrency(totalPaidExpense)}`;
-            document.getElementById('txt-restante-status').innerText = `Falta: ${formatCurrency(remainingExpense)}`;
-            document.getElementById('bar-falta').innerText = formatCurrency(remainingExpense);
-            document.getElementById('bar-pago').innerText = formatCurrency(totalPaidExpense);
-        }
-
-        function toggleItemPaid(id, currentStatus) {
-            sendAction({ action: 'toggle', id: id, paid: !currentStatus });
-        }
-
-        function addItem() {
-            const day = document.getElementById('form-day').value.trim();
-            const name = document.getElementById('form-name').value.trim();
-            const value = parseFloat(document.getElementById('form-value').value);
-            const type = document.getElementById('form-type').value;
-
-            if (!name || isNaN(value)) { return alert('Preencha a descrição e o valor.'); }
-
-            sendAction({
-                action: 'add',
-                type: type,
-                day: day || '-',
-                name: name.toUpperCase(),
-                value: value,
-                paid: type === 'income'
-            });
-
-            document.getElementById('form-day').value = '';
-            document.getElementById('form-name').value = '';
-            document.getElementById('form-value').value = '';
-        }
-
-        function deleteItem(id) {
-            if (confirm('Deseja excluir permanentemente esta linha da planilha?')) {
-                sendAction({ action: 'delete', id: id });
-            }
-        }
-
-        function changeMonth(month) { loadData(month); }
-        function setFilter(filter) { currentFilter = filter; document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active')); document.getElementById(`btn-filter-${filter}`).classList.add('active'); renderList(); }
-
-        function renderList() {
-            const container = document.getElementById('items-container');
-            container.innerHTML = '';
-            let filtered = financialData;
-
-            if (currentFilter === 'pending') filtered = financialData.filter(i => !i.paid && i.type === 'expense');
-            else if (currentFilter === 'paid') filtered = financialData.filter(i => i.paid || i.type === 'income');
-
-            filtered.sort((a,b) => (a.day==='-') ? 1 : (b.day==='-') ? -1 : parseInt(a.day) - parseInt(b.day));
-
-            filtered.forEach(item => {
-                const row = document.createElement('div');
-                row.className = `item-row ${item.paid ? 'paid' : ''}`;
-                row.innerHTML = `
-                    <div class="item-left">
-                        <div class="day-badge">${item.day}</div>
-                        <span class="item-name">${item.name}</span>
-                    </div>
-                    <div class="item-right">
-                        <span class="item-value" style="color: ${item.type === 'income' ? 'var(--success)' : 'inherit'}">${formatCurrency(item.value)}</span>
-                        ${item.type === 'expense' ? `
-                            <label class="checkbox-container">
-                                <input type="checkbox" ${item.paid ? 'checked' : ''} onchange="toggleItemPaid(${item.id}, ${item.paid})">
-                                <span class="checkmark"></span>
-                            </label>
-                        ` : '<span style="color:var(--success); font-size:12px;">✔</span>'}
-                        <button class="btn-delete" onclick="deleteItem(${item.id})">×</button>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        // Validação e Inicialização Corrigida
-        if(GOOGLE_API_URL === "SUA_URL_DO_APPS_SCRIPT_AQUI" || GOOGLE_API_URL === "") {
-            alert("Por favor, configure a variável GOOGLE_API_URL com o seu link do Apps Script dentro do código.");
-        } else {
-            loadData();
-        }
-    </script>
 </body>
 </html>
