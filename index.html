@@ -167,11 +167,11 @@
 
 <script>
 // =========================================================================
-// 1. URL PÚBLICA DO GOOGLE SHEETS (Se vazia ou com erro, usa o backup local)
+// 1. URL PÚBLICA DO GOOGLE SHEETS
 // =========================================================================
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRkM3QpPN0ZvYDMqwo9ZAgwDhxjN_DIJnZdhk5iX30OeCmmFzMKlCYPM-jgv9R2N4JGscu3pHfwa_Nn/pub?gid=0&single=true&output=csv"; 
 
-// Base local de segurança (garante que nunca abra vazio)
+// Base local com todos os 196 lançamentos consolidados
 const fallbackData = [
   // Julho/2026 - Mercado Pago
   [1, "02/07/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOPAGO ZIYOUINTERMED", "Serviços & Assinaturas", 166.61, "12/21"],
@@ -352,7 +352,32 @@ const fallbackData = [
   [170,"26/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE MERCADOLIVRE","Compras & Eletrônicos",37.92,"1/1"],
   [171,"26/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE*JJOIASPREMIU","Compras & Eletrônicos",24.96,"1/1"],
   [172,"26/07/2026","08/2026","Mercado Pago Visa 9695","VIVO EASY VIVO EA","Serviços & Assinaturas",38.00,"1/1"],
-  [173,"28/07/2026","08/2026","Mercado Pago Visa 9695","EBN SPOTIFY","Serviços & Assinaturas",40.90,"1/1"]
+  [173,"28/07/2026","08/2026","Mercado Pago Visa 9695","EBN SPOTIFY","Serviços & Assinaturas",40.90,"1/1"],
+  // Agosto/2026 - Magalu
+  [174,"25/01/2026","08/2026","Magalu Visa 0189","SAMSUNG NO ITAU","Compras & Eletrônicos",81.00,"19/21"],
+  [175,"29/08/2025","08/2026","Magalu Visa 0189","EBN Canva","Serviços & Assinaturas",24.24,"12/12"],
+  [176,"14/12/2025","08/2026","Magalu Visa 0189","HTM JornadaLooker50","Serviços & Assinaturas",23.68,"8/12"],
+  [177,"05/01/2026","08/2026","Magalu Visa 0189","MAGAZINE LUIZA","Compras & Eletrônicos",201.98,"7/10"],
+  [178,"10/02/2026","08/2026","Magalu Visa 0189","LIVRO FACIL Livro","Compras & Eletrônicos",106.15,"6/9"],
+  [179,"07/07/2026","08/2026","Magalu Visa 0189","Google One","Serviços & Assinaturas",9.99,"1/1"],
+  [180,"15/07/2026","08/2026","Magalu Visa 0189","Google CapCut Video E","Serviços & Assinaturas",6.50,"1/1"],
+  [181,"20/07/2026","08/2026","Magalu Visa 0189","Google File Manager","Serviços & Assinaturas",23.99,"1/1"],
+  // Agosto/2026 - Itaú
+  [182,"13/06/2026","08/2026","Itaú Visa 5902","MARCONDES E FI","Compras & Eletrônicos",204.89,"2/10"],
+  [183,"17/06/2026","08/2026","Itaú Visa 5902","HEALTH RESENDE","Saúde & Farmácia",113.49,"2/10"],
+  [184,"23/06/2026","08/2026","Itaú Visa 5902","CINESHOW RESENDE","Lazer & Entretenimento",37.50,"2/6"],
+  [185,"29/07/2026","08/2026","Itaú Visa 5902","LOJAS AMERICANAS","Compras & Eletrônicos",80.21,"1/2"],
+  [186,"13/07/2026","08/2026","Itaú Visa 5902","ANTHROPIC CLAUDE SUB","Serviços & Assinaturas",116.75,"1/1"],
+  [187,"13/07/2026","08/2026","Itaú Visa 5902","REPASSE IOF INTERNACIONAL","Outros / Diversos",4.09,"1/1"],
+  // Agosto/2026 - Mercado Pago Maybi
+  [188,"05/07/2026","08/2026","Mercado Pago Visa 9433","DL UberRides","Transporte & Combustível",9.93,"1/1"],
+  [189,"13/07/2026","08/2026","Mercado Pago Visa 9433","DL UberRides","Transporte & Combustível",9.94,"1/1"],
+  [190,"13/07/2026","08/2026","Mercado Pago Visa 9433","DL UberRides","Transporte & Combustível",5.00,"1/1"],
+  [191,"15/07/2026","08/2026","Mercado Pago Visa 9433","MP MAYBI DA SILVA PETILLO","Outros / Diversos",88.39,"1/1"],
+  [192,"03/08/2026","08/2026","Mercado Pago Visa 9433","IOF DO ROTATIVO","Outros / Diversos",1.00,"1/1"],
+  [193,"03/08/2026","08/2026","Mercado Pago Visa 9433","JUROS DE MORA","Outros / Diversos",0.09,"1/1"],
+  [194,"03/08/2026","08/2026","Mercado Pago Visa 9433","JUROS DO ROTATIVO","Outros / Diversos",1.52,"1/1"],
+  [195,"03/08/2026","08/2026","Mercado Pago Visa 9433","MULTA POR ATRASO","Outros / Diversos",5.07,"1/1"]
 ];
 
 let rawData = [...fallbackData];
@@ -364,12 +389,10 @@ const futureMonthsList = [
 
 let catChart, cardChart, projectionChart;
 
-// Parser inteligente com suporte a split por vírgula ou ponto e vírgula
 function parseCSV(text) {
   const lines = text.trim().split('\n');
   if (lines.length <= 1) return [];
 
-  // Detecta o separador da primeira linha
   const firstLine = lines[0];
   const delimiter = firstLine.includes(';') ? ';' : ',';
 
@@ -382,7 +405,6 @@ function parseCSV(text) {
     if (delimiter === ';') {
       cols = line.split(';');
     } else {
-      // Regex para respeitar vírgulas dentro de aspas
       cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
     }
 
@@ -410,15 +432,14 @@ function parseCSV(text) {
 }
 
 async function loadLiveSheetsData() {
-  if (!CSV_URL || CSV_URL === "SUA_URL_PUBLICA_DO_SHEETS_AQUI") {
-    console.warn("CSV_URL não configurada. Usando dados locais incorporados.");
+  if (!CSV_URL || CSV_URL === "SUA_URL_PUBLICA_DO_SHEETS_AQUI" || CSV_URL === "ocultei") {
     initFilters();
     renderDashboard();
     return;
   }
 
   try {
-    const res = await fetch(CSV_URL + '&t=' + new Date().getTime()); // Evita cache
+    const res = await fetch(CSV_URL + '&t=' + new Date().getTime());
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const csvText = await res.text();
     const parsed = parseCSV(csvText);
@@ -428,11 +449,9 @@ async function loadLiveSheetsData() {
       const badge = document.getElementById('dataStatus');
       badge.textContent = '● Planilha Conectada (Ao Vivo)';
       badge.className = 'status-badge status-online';
-    } else {
-      console.warn("CSV vazio ou ilegível. Mantendo dados locais.");
     }
   } catch (err) {
-    console.error("Falha ao carregar Google Sheets ao vivo. Usando backup local:", err);
+    console.error("Falha ao carregar dados remotos:", err);
   } finally {
     initFilters();
     renderDashboard();
@@ -447,30 +466,55 @@ function formatBRL(val) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// OBTÉM DINAMICAMENTE APENAS O ÚLTIMO REGISTRO LANÇADO DE CADA COMPRA PARCELADA
+function getLatestInstallments() {
+  const latestMap = new Map();
+  const allInstallments = rawData.filter(r => isParcelado(r[7]));
+
+  allInstallments.forEach(r => {
+    // Chave única: Cartão + Estabelecimento
+    const key = `${r[3]}|${r[4]}`;
+    const [atualStr, totalStr] = r[7].split('/');
+    const atual = parseInt(atualStr);
+    const total = parseInt(totalStr);
+
+    if (!latestMap.has(key)) {
+      latestMap.set(key, { ...r, atual, total, rawRow: r });
+    } else {
+      const existing = latestMap.get(key);
+      // Mantém apenas o registro com a parcela mais recente
+      if (atual > existing.atual) {
+        latestMap.set(key, { ...r, atual, total, rawRow: r });
+      }
+    }
+  });
+
+  return Array.from(latestMap.values());
+}
+
+// GERA OS ITENS DO MÊS FUTURO SEM NENHUMA DUPLICIDADE
 function generateFutureData(targetMonth) {
   const futureIndex = futureMonthsList.indexOf(targetMonth);
   if (futureIndex === -1) return [];
 
-  const parcelasAtivas = rawData.filter(r => isParcelado(r[7]) && (r[2] === '08/2026' || (r[2] === '07/2026' && !['Mercado Pago Visa 9695', 'Ourocard Visa 8971'].includes(r[3]))));
-  
+  const latestList = getLatestInstallments();
   const futureItems = [];
-  parcelasAtivas.forEach((r, idx) => {
-    const [atualStr, totalStr] = r[7].split('/');
-    const atual = parseInt(atualStr);
-    const total = parseInt(totalStr);
-    const offset = futureIndex + 1;
-    const novaParcelaNum = atual + offset;
 
-    if (novaParcelaNum <= total) {
+  latestList.forEach((item, idx) => {
+    const offset = futureIndex + 1;
+    const novaParcelaNum = item.atual + offset;
+
+    // Se a parcela calculada ainda está dentro do total contratado
+    if (novaParcelaNum <= item.total) {
       futureItems.push([
         `FUT-${idx + 1}`,
         `01/${targetMonth}`,
         targetMonth,
-        r[3],
-        r[4],
-        r[5],
-        r[6],
-        `${novaParcelaNum}/${total}`
+        item.rawRow[3],
+        item.rawRow[4],
+        item.rawRow[5],
+        item.rawRow[6],
+        `${novaParcelaNum}/${item.total}`
       ]);
     }
   });
