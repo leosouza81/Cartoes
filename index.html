@@ -28,7 +28,7 @@
 
     .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
     .status-online { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .status-offline { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
     .filters { display: flex; gap: 12px; flex-wrap: wrap; }
     select { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; font-size: 14px; outline: none; }
@@ -72,7 +72,7 @@
     <div>
       <div style="display: flex; align-items: center; gap: 12px;">
         <h1>Painel Financeiro Consolidado</h1>
-        <span id="dataStatus" class="status-badge status-offline">● Dados Locais</span>
+        <span id="dataStatus" class="status-badge status-offline">● Conectando Planilha...</span>
       </div>
       <div class="subtitle">Acompanhamento executivo de faturas e compromissos futuros</div>
     </div>
@@ -167,226 +167,12 @@
 
 <script>
 // =========================================================================
-// 1. URL PÚBLICA DO GOOGLE SHEETS
+// COLE O LINK CSV PÚBLICO DA SUA PLANILHA AQUI:
 // =========================================================================
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRkM3QpPN0ZvYDMqwo9ZAgwDhxjN_DIJnZdhk5iX30OeCmmFzMKlCYPM-jgv9R2N4JGscu3pHfwa_Nn/pub?gid=0&single=true&output=csv"; 
 
-// Base local com todos os 196 lançamentos consolidados
-const fallbackData = [
-  // Julho/2026 - Mercado Pago
-  [1, "02/07/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOPAGO ZIYOUINTERMED", "Serviços & Assinaturas", 166.61, "12/21"],
-  [2, "26/09/2025", "07/2026", "Mercado Pago Visa 9695", "BMB VivoEasy Lite", "Serviços & Assinaturas", 30.00, "10/12"],
-  [3, "15/12/2025", "07/2026", "Mercado Pago Visa 9695", "AMAZON PRIME BR", "Serviços & Assinaturas", 13.90, "7/12"],
-  [4, "20/01/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOLIVRE 2 PRODUTOS", "Compras & Eletrônicos", 223.11, "6/18"],
-  [5, "14/04/2026", "07/2026", "Mercado Pago Visa 9695", "Globo Combo", "Serviços & Assinaturas", 48.90, "3/12"],
-  [6, "18/04/2026", "07/2026", "Mercado Pago Visa 9695", "MP BRAIINSTORM", "Outros / Diversos", 32.33, "3/8"],
-  [7, "23/04/2026", "07/2026", "Mercado Pago Visa 9695", "EC QCONCURSOS", "Serviços & Assinaturas", 31.09, "3/10"],
-  [8, "10/05/2026", "07/2026", "Mercado Pago Visa 9695", "MP MERCADOLIVRE", "Compras & Eletrônicos", 39.95, "2/8"],
-  [9, "12/05/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOLIVRE MERCADOLIVRE", "Compras & Eletrônicos", 23.09, "2/5"],
-  [10, "03/06/2026", "07/2026", "Mercado Pago Visa 9695", "AMAZON BR *Amazon BR", "Compras & Eletrônicos", 64.23, "1/12"],
-  [11, "11/06/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOLIVRE TITI", "Compras & Eletrônicos", 65.90, "1/1"],
-  [12, "16/06/2026", "07/2026", "Mercado Pago Visa 9695", "CLARO FLEX", "Serviços & Assinaturas", 14.99, "1/1"],
-  [13, "21/06/2026", "07/2026", "Mercado Pago Visa 9695", "MP LEONARDOSOUZA", "Outros / Diversos", 128.52, "1/1"],
-  [14, "22/06/2026", "07/2026", "Mercado Pago Visa 9695", "MP MELIMAIS", "Serviços & Assinaturas", 19.90, "1/1"],
-  [15, "23/06/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOLIVRE MERCADOLIVRE", "Compras & Eletrônicos", 71.39, "1/1"],
-  [16, "23/06/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOLIVRE MERCADOLIVRE", "Compras & Eletrônicos", 19.00, "1/1"],
-  [17, "26/06/2026", "07/2026", "Mercado Pago Visa 9695", "PAYPAL *DYNALISTINC", "Serviços & Assinaturas", 28.30, "1/1"],
-  [18, "26/06/2026", "07/2026", "Mercado Pago Visa 9695", "VIVO EASY VIVO EA", "Serviços & Assinaturas", 38.00, "1/1"],
-  [19, "28/06/2026", "07/2026", "Mercado Pago Visa 9695", "MERCADOLIVRE RECARGASEXPR", "Serviços & Assinaturas", 38.90, "1/1"],
-  [20, "28/06/2026", "07/2026", "Mercado Pago Visa 9695", "EBN SPOTIFY", "Serviços & Assinaturas", 40.90, "1/1"],
-  // Julho/2026 - BB
-  [21,"05/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",44.70,"1/1"],
-  [22,"06/06/2026","07/2026","Ourocard Visa 8971","ESPETACULO RESTAURANTE RESENDE","Restaurantes & Delivery",83.60,"1/1"],
-  [23,"06/06/2026","07/2026","Ourocard Visa 8971","BELLA EMPADA RESENDEL RESENDE","Restaurantes & Delivery",22.00,"1/1"],
-  [24,"07/06/2026","07/2026","Ourocard Visa 8971","DELICIAS DO QUEIJO RESENDE","Restaurantes & Delivery",81.00,"1/1"],
-  [25,"07/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",67.51,"1/1"],
-  [26,"07/06/2026","07/2026","Ourocard Visa 8971","BrunaFerreira CRUZEIRO","Restaurantes & Delivery",36.70,"1/1"],
-  [27,"07/06/2026","07/2026","Ourocard Visa 8971","AH DA SILVA LEITE ME CRUZEIRO","Restaurantes & Delivery",31.00,"1/1"],
-  [28,"07/06/2026","07/2026","Ourocard Visa 8971","LUAN DA CUNHA SILVA 15 RESENDE","Restaurantes & Delivery",15.00,"1/1"],
-  [29,"09/06/2026","07/2026","Ourocard Visa 8971","M APARECIDA MOREIRAD VOLTA REDONDA","Restaurantes & Delivery",37.53,"1/1"],
-  [30,"09/06/2026","07/2026","Ourocard Visa 8971","CAFE LINDO RIO RIO DE JANEIR","Restaurantes & Delivery",22.40,"1/1"],
-  [31,"11/06/2026","07/2026","Ourocard Visa 8971","MP CHURRASCARIA393 OSASCO","Restaurantes & Delivery",38.50,"1/1"],
-  [32,"12/06/2026","07/2026","Ourocard Visa 8971","FATIMA TORTERIA JALISC RESENDE","Restaurantes & Delivery",15.00,"1/1"],
-  [33,"14/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",72.70,"1/1"],
-  [34,"15/06/2026","07/2026","Ourocard Visa 8971","LARA LACTINIOS RIO DE JANEIR","Restaurantes & Delivery",48.00,"1/1"],
-  [35,"17/06/2026","07/2026","Ourocard Visa 8971","SORVETERIA SOL E NEVE RESENDE","Restaurantes & Delivery",25.90,"1/1"],
-  [36,"18/06/2026","07/2026","Ourocard Visa 8971","ADR COMERCIO DE PRODUT RESENDE","Restaurantes & Delivery",44.00,"1/1"],
-  [37,"20/06/2026","07/2026","Ourocard Visa 8971","RUY BRASOLIN FILHO PASSA QUATRO","Restaurantes & Delivery",147.40,"1/1"],
-  [38,"22/06/2026","07/2026","Ourocard Visa 8971","ESPETACULO RESTAURANTE RESENDE","Restaurantes & Delivery",89.10,"1/1"],
-  [39,"27/06/2026","07/2026","Ourocard Visa 8971","SABORES DO MERCADAO RESENDE","Restaurantes & Delivery",51.21,"1/1"],
-  [40,"15/06/2026","07/2026","Ourocard Visa 8971","DROGARIAS PACHECO SA RESENDE","Saúde & Farmácia",124.48,"1/1"],
-  [41,"18/06/2026","07/2026","Ourocard Visa 8971","DrogariaModerna23 RESENDE","Saúde & Farmácia",62.94,"1/1"],
-  [42,"19/06/2026","07/2026","Ourocard Visa 8971","DROGARIA CAMPOS ELISE RESENDE","Saúde & Farmácia",115.96,"1/1"],
-  [43,"02/06/2026","07/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",44.34,"1/1"],
-  [44,"02/06/2026","07/2026","Ourocard Visa 8971","HDI SEGUROS SA Sao Paulo","Outros / Diversos",221.15,"1/1"],
-  [45,"05/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",19.62,"1/1"],
-  [46,"05/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",58.36,"1/1"],
-  [47,"05/06/2026","07/2026","Ourocard Visa 8971","BARBEARIA SENA RESENDE","Outros / Diversos",30.00,"1/1"],
-  [48,"05/06/2026","07/2026","Ourocard Visa 8971","POSTO RESENDE RESENDE","Transporte & Combustível",50.00,"1/1"],
-  [49,"06/06/2026","07/2026","Ourocard Visa 8971","DOM ATACADISTA-RESEN RESENDE","Alimentação & Supermercado",989.16,"1/1"],
-  [50,"06/06/2026","07/2026","Ourocard Visa 8971","DOM ATACADISTA-RESEN RESENDE","Alimentação & Supermercado",123.11,"1/1"],
-  [51,"06/06/2026","07/2026","Ourocard Visa 8971","ATACADÃO 207A5 RESENDE","Alimentação & Supermercado",406.45,"1/1"],
-  [52,"07/06/2026","07/2026","Ourocard Visa 8971","VANDERSON MITAMONTE","Outros / Diversos",30.00,"1/1"],
-  [53,"08/06/2026","07/2026","Ourocard Visa 8971","S.M. PRESENTES RESENDE","Compras & Eletrônicos",25.00,"1/1"],
-  [54,"09/06/2026","07/2026","Ourocard Visa 8971","SERV. NUVEM INTELBRAS SAO JOSE","Serviços & Assinaturas",23.50,"1/1"],
-  [55,"10/06/2026","07/2026","Ourocard Visa 8971","VATEL ELETRONICA RESENDE","Compras & Eletrônicos",115.00,"1/1"],
-  [56,"11/06/2026","07/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",26.42,"1/1"],
-  [57,"11/06/2026","07/2026","Ourocard Visa 8971","AUTO POSTO CASACA LTDA GUAPIMIRIM","Transporte & Combustível",19.98,"1/1"],
-  [58,"12/06/2026","07/2026","Ourocard Visa 8971","MALZAC RESENDE","Compras & Eletrônicos",42.00,"1/1"],
-  [59,"18/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",82.97,"1/1"],
-  [60,"20/06/2026","07/2026","Ourocard Visa 8971","PANIFICADORA E CONFEIT PASSA QUATRO","Alimentação & Supermercado",41.50,"1/1"],
-  [61,"20/06/2026","07/2026","Ourocard Visa 8971","CASA DE QUEIJOS FAZEND PASSA QUATRO","Alimentação & Supermercado",18.50,"1/1"],
-  [62,"21/06/2026","07/2026","Ourocard Visa 8971","Resembig RESENDE","Alimentação & Supermercado",71.70,"1/1"],
-  [63,"22/06/2026","07/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",24.69,"1/1"],
-  [64,"23/06/2026","07/2026","Ourocard Visa 8971","AMERICANAS SA RESENDE","Compras & Eletrônicos",30.98,"1/1"],
-  [65,"26/06/2026","07/2026","Ourocard Visa 8971","PETRILI MATERIAL ELETR RESENDE","Compras & Eletrônicos",79.25,"1/1"],
-  [66,"27/06/2026","07/2026","Ourocard Visa 8971","BARBEARIA SENA RESENDE","Outros / Diversos",30.00,"1/1"],
-  [67,"27/06/2026","07/2026","Ourocard Visa 8971","GRAZI LOBO RESENDE","Outros / Diversos",145.00,"1/1"],
-  [68,"27/06/2026","07/2026","Ourocard Visa 8971","ATACADAO 207AS RESENDE","Alimentação & Supermercado",233.04,"1/1"],
-  [69,"29/06/2026","07/2026","Ourocard Visa 8971","AutoCenter Trato RESENDE","Transporte & Combustível",50.00,"1/1"],
-  [70,"04/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",46.14,"1/1"],
-  [71,"15/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",83.43,"1/1"],
-  [72,"19/06/2026","07/2026","Ourocard Visa 8971","ROYAL CENTER RESENDE","Compras & Eletrônicos",129.88,"1/1"],
-  [73,"24/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",46.21,"1/1"],
-  [74,"26/06/2026","07/2026","Ourocard Visa 8971","ROYAL CENTER RESENDE","Compras & Eletrônicos",16.09,"1/1"],
-  [75,"26/06/2026","07/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",121.90,"1/1"],
-  [76,"26/06/2026","07/2026","Ourocard Visa 8971","DL UberRides Sao Paulo","Transporte & Combustível",9.95,"1/1"],
-  [77,"03/06/2026","07/2026","Ourocard Visa 8971","RV COMERCIO RESENDE","Compras & Eletrônicos",89.99,"1/1"],
-  [78,"10/06/2026","07/2026","Ourocard Visa 8971","CalcadosKids RESENDE","Compras & Eletrônicos",139.90,"1/1"],
-  [79,"14/06/2026","07/2026","Ourocard Visa 8971","AlineCristina CRUZEIRO","Compras & Eletrônicos",42.00,"1/1"],
-  [80,"19/06/2026","07/2026","Ourocard Visa 8971","MAIS TOP RESENDE RESENDE","Compras & Eletrônicos",65.00,"1/1"],
-  [81,"20/06/2026","07/2026","Ourocard Visa 8971","JO MODAS PASSA QUATRO","Compras & Eletrônicos",53.00,"1/1"],
-  [82,"21/06/2026","07/2026","Ourocard Visa 8971","CACAU SHOW PASSA QUATRO","Alimentação & Supermercado",26.04,"1/1"],
-  [83,"01/06/2026","07/2026","Ourocard Visa 8971","DL GOOGLE YouTube SAO PAULO","Serviços & Assinaturas",53.90,"1/1"],
-  [84,"11/05/2026","07/2026","Ourocard Visa 8971","Jose CarlosMar RESENDE","Outros / Diversos",99.66,"2/3"],
-  [85,"14/05/2026","07/2026","Ourocard Visa 8971","CEA RES 470 E RECIFE","Compras & Eletrônicos",89.99,"2/2"],
-  [86,"23/05/2026","07/2026","Ourocard Visa 8971","GR COMERCIO D RESENDE","Outros / Diversos",74.95,"2/2"],
-  [87,"30/06/2026","07/2026","Ourocard Visa 8971","S.M. PRESENTE RESENDE","Compras & Eletrônicos",81.62,"1/5"],
-  // Julho/2026 - Bradesco
-  [88,"24/01/2026","07/2026","Bradesco Visa 7046","LITE VivoEasyAnua 06/12","Serviços & Assinaturas",30.00,"6/12"],
-  [89,"19/06/2026","07/2026","Bradesco Visa 7046","TheKingBurguer","Restaurantes & Delivery",32.98,"1/1"],
-  [90,"24/06/2026","07/2026","Bradesco Visa 7046","SEGURO SUPERPROTEGIDO","Outros / Diversos",9.99,"1/1"],
-  // Julho/2026 - Magalu
-  [91,"25/01/2026","07/2026","Magalu Visa 0189","SAMSUNG NO ITAU","Compras & Eletrônicos",81.00,"18/21"],
-  [92,"29/08/2025","07/2026","Magalu Visa 8091","EBN Canva","Serviços & Assinaturas",24.24,"11/12"],
-  [93,"05/01/2026","07/2026","Magalu Visa 8091","MAGAZINE LUIZA 2000","Compras & Eletrônicos",201.98,"6/10"],
-  [94,"10/02/2026","07/2026","Magalu Visa 8091","LIVRO FACIL Livro","Compras & Eletrônicos",106.15,"5/9"],
-  [95,"06/06/2026","07/2026","Magalu Visa 8091","Google Proton VPN","Serviços & Assinaturas",0.99,"1/1"],
-  [96,"07/06/2026","07/2026","Magalu Visa 8091","Google One","Serviços & Assinaturas",9.99,"1/1"],
-  [97,"25/06/2026","07/2026","Magalu Visa 8091","Google My Finances","Serviços & Assinaturas",99.90,"1/1"],
-  [98,"28/06/2026","07/2026","Magalu Visa 8091","Google Camera Control","Serviços & Assinaturas",9.49,"1/1"],
-  [99,"14/12/2025","07/2026","Magalu Visa 3230","HTM JornadaLooker50","Serviços & Assinaturas",23.68,"7/12"],
-  // Julho/2026 - Itaú
-  [100,"13/06/2026","07/2026","Itaú Visa 5902","MARCONDES E FI","Compras & Eletrônicos",204.89,"1/10"],
-  [101,"17/06/2026","07/2026","Itaú Visa 5902","HEALTH RESENDE","Saúde & Farmácia",113.49,"1/10"],
-  [102,"23/06/2026","07/2026","Itaú Visa 5902","CINESHOW RESENDE","Lazer & Entretenimento",37.50,"1/6"],
-  [103,"23/06/2026","07/2026","Itaú Visa 5902","CINESHOW RESENDE BR","Lazer & Entretenimento",38.00,"1/1"],
-  [104,"12/06/2026","07/2026","Itaú Visa 5902","ANTHROPIC CLAUDE SUB","Serviços & Assinaturas",117.67,"1/1"],
-  [105,"25/06/2026","07/2026","Itaú Visa 5902","ANTHROPIC.COM","Serviços & Assinaturas",27.55,"1/1"],
-  [106,"25/06/2026","07/2026","Itaú Visa 5902","REPASSE IOF INTERNACIONAL","Outros / Diversos",5.07,"1/1"],
-  // Agosto/2026 - BB
-  [107,"07/07/2026","08/2026","Ourocard Visa 8971","CONVENIENCIA XALE BARRA DO PIRA","Restaurantes & Delivery",10.50,"1/1"],
-  [108,"10/07/2026","08/2026","Ourocard Visa 8971","REFUGIO PIRAI","Restaurantes & Delivery",23.00,"1/1"],
-  [109,"13/07/2026","08/2026","Ourocard Visa 8971","PICANHA AO ALHO SEROPEDICA","Restaurantes & Delivery",19.00,"1/1"],
-  [110,"14/07/2026","08/2026","Ourocard Visa 8971","VALENCA Restaurante","Restaurantes & Delivery",73.39,"1/1"],
-  [111,"19/07/2026","08/2026","Ourocard Visa 8971","AntonioCarlos LORENA","Restaurantes & Delivery",20.00,"1/1"],
-  [112,"26/07/2026","08/2026","Ourocard Visa 8971","DELICIAS DO QUEIJO RESENDE","Restaurantes & Delivery",32.37,"1/1"],
-  [113,"26/07/2026","08/2026","Ourocard Visa 8971","MARIANO AUGUSTO RODRIG RESENDE","Restaurantes & Delivery",15.00,"1/1"],
-  [114,"27/07/2026","08/2026","Ourocard Visa 8971","PADOCA RESENDE","Restaurantes & Delivery",54.00,"1/1"],
-  [115,"28/07/2026","08/2026","Ourocard Visa 8971","MP CHURRASCARIA393 VASSOURAS","Restaurantes & Delivery",35.00,"1/1"],
-  [116,"21/07/2026","08/2026","Ourocard Visa 8971","DROGARIA PETILLO LTDA ANGRA DOS REI","Saúde & Farmácia",174.47,"1/1"],
-  [117,"30/07/2026","08/2026","Ourocard Visa 8971","DROGARIA CAMPOS ELISE RESENDE","Saúde & Farmácia",253.47,"1/1"],
-  [118,"01/07/2026","08/2026","Ourocard Visa 8971","Google YouTube SAO PAULO","Serviços & Assinaturas",53.90,"1/1"],
-  [119,"02/07/2026","08/2026","Ourocard Visa 8971","HDI SEGUROS SA Sao Paulo","Outros / Diversos",221.15,"1/1"],
-  [120,"03/07/2026","08/2026","Ourocard Visa 8971","PADARIA NS DE FATIMA RESENDE","Alimentação & Supermercado",13.07,"1/1"],
-  [121,"03/07/2026","08/2026","Ourocard Visa 8971","RenascencaModas RESENDE","Compras & Eletrônicos",22.00,"1/1"],
-  [122,"03/07/2026","08/2026","Ourocard Visa 8971","BADY FERRAGENS E FERR RESENDE","Compras & Eletrônicos",78.50,"1/1"],
-  [123,"07/07/2026","08/2026","Ourocard Visa 8971","Padaria Nossa Senho BARRA MANSA","Alimentação & Supermercado",32.00,"1/1"],
-  [124,"08/07/2026","08/2026","Ourocard Visa 8971","ATACADAO 207AS RESENDE","Alimentação & Supermercado",1042.31,"1/1"],
-  [125,"10/07/2026","08/2026","Ourocard Visa 8971","SERV. NUVEM INTELBRAS SAO JOSE","Serviços & Assinaturas",23.50,"1/1"],
-  [126,"10/07/2026","08/2026","Ourocard Visa 8971","POSTO MONTE CASTELO RESENDE","Transporte & Combustível",51.57,"1/1"],
-  [127,"10/07/2026","08/2026","Ourocard Visa 8971","AUTO POSTO NOSSA SENHO MARICA","Transporte & Combustível",71.45,"1/1"],
-  [128,"10/07/2026","08/2026","Ourocard Visa 8971","REFUGIO P. PIRAI","Restaurantes & Delivery",50.00,"1/1"],
-  [129,"12/07/2026","08/2026","Ourocard Visa 8971","POSTO JR VOLTA REDONDA","Transporte & Combustível",81.37,"1/1"],
-  [130,"18/07/2026","08/2026","Ourocard Visa 8971","POSTO MONTE CASTELO RESENDE","Transporte & Combustível",52.65,"1/1"],
-  [131,"18/07/2026","08/2026","Ourocard Visa 8971","ATACADAO 207AS RESENDE","Alimentação & Supermercado",161.33,"1/1"],
-  [132,"21/07/2026","08/2026","Ourocard Visa 8971","MATHEUS HEN RESENDE","Outros / Diversos",40.00,"1/1"],
-  [133,"21/07/2026","08/2026","Ourocard Visa 8971","POSTO ROMA LTDA VOLTA REDONDA","Transporte & Combustível",51.26,"1/1"],
-  [134,"22/07/2026","08/2026","Ourocard Visa 8971","POSTO ROMA LTDA VOLTA REDONDA","Transporte & Combustível",64.68,"1/1"],
-  [135,"26/07/2026","08/2026","Ourocard Visa 8971","ANA PAULA D ITAMONTE","Outros / Diversos",25.00,"1/1"],
-  [136,"27/07/2026","08/2026","Ourocard Visa 8971","POSTO DAS PALMEIRAS BM BARRA MANSA","Transporte & Combustível",81.37,"1/1"],
-  [137,"31/07/2026","08/2026","Ourocard Visa 8971","POINT DO PAO RESENDE","Alimentação & Supermercado",35.84,"1/1"],
-  [138,"31/07/2026","08/2026","Ourocard Visa 8971","SPANI ATACADISTA RESENDE","Alimentação & Supermercado",139.72,"1/1"],
-  [139,"02/08/2026","08/2026","Ourocard Visa 8971","HDI SEGUROS SA Sao Paulo","Outros / Diversos",221.15,"1/1"],
-  [140,"31/07/2026","08/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",29.08,"1/1"],
-  [141,"31/07/2026","08/2026","Ourocard Visa 8971","SUPERMECADO MAXIMO RESENDE","Alimentação & Supermercado",101.40,"1/1"],
-  [142,"01/07/2026","08/2026","Ourocard Visa 8971","DL UberRides Sao Paulo","Transporte & Combustível",19.98,"1/1"],
-  [143,"17/07/2026","08/2026","Ourocard Visa 8971","DL UberRides Sao Paulo","Transporte & Combustível",13.96,"1/1"],
-  [144,"19/07/2026","08/2026","Ourocard Visa 8971","AlineCristina CRUZEIRO","Compras & Eletrônicos",69.00,"1/1"],
-  [145,"24/07/2026","08/2026","Ourocard Visa 8971","Renata Moreira MACAE","Compras & Eletrônicos",79.80,"1/1"],
-  [146,"01/08/2026","08/2026","Ourocard Visa 8971","Google YouTube SAO PAULO","Serviços & Assinaturas",53.90,"1/1"],
-  [147,"11/05/2026","08/2026","Ourocard Visa 8971","JoseCarlosMar RESENDE","Outros / Diversos",99.66,"3/3"],
-  [148,"30/06/2026","08/2026","Ourocard Visa 8971","S.M. PRESENTE RESENDE","Compras & Eletrônicos",81.59,"2/5"],
-  [149,"02/07/2026","08/2026","Ourocard Visa 8971","FARMACIA CONF RESENDE","Saúde & Farmácia",548.30,"1/2"],
-  [150,"03/07/2026","08/2026","Ourocard Visa 8971","MAIS TOP RESE RESENDE","Compras & Eletrônicos",77.50,"1/2"],
-  [151,"31/07/2026","08/2026","Ourocard Visa 8971","WORLD TENIS RESENDE","Compras & Eletrônicos",122.02,"1/5"],
-  // Agosto/2026 - Mercado Pago
-  [152,"02/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOPAGO ZIYOUINTERMED","Serviços & Assinaturas",166.61,"13/21"],
-  [153,"26/09/2025","08/2026","Mercado Pago Visa 9695","BMB VivoEasy Lite","Serviços & Assinaturas",30.00,"11/12"],
-  [154,"15/12/2025","08/2026","Mercado Pago Visa 9695","AMAZON PRIME BR","Serviços & Assinaturas",13.90,"8/12"],
-  [155,"20/01/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE 2PRODUTOS","Compras & Eletrônicos",223.11,"7/18"],
-  [156,"14/04/2026","08/2026","Mercado Pago Visa 9695","Globo Combo","Serviços & Assinaturas",48.90,"4/12"],
-  [157,"18/04/2026","08/2026","Mercado Pago Visa 9695","MP BRAIINSTORM","Outros / Diversos",32.33,"4/8"],
-  [158,"23/04/2026","08/2026","Mercado Pago Visa 9695","EC QCONCURSOS","Serviços & Assinaturas",31.09,"4/10"],
-  [159,"10/05/2026","08/2026","Mercado Pago Visa 9695","MP MERCADOLIVRE","Compras & Eletrônicos",39.95,"3/8"],
-  [160,"12/05/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE MERCADOLIVRE","Compras & Eletrônicos",23.09,"3/5"],
-  [161,"03/06/2026","08/2026","Mercado Pago Visa 9695","AMAZON BR Amazon BR","Compras & Eletrônicos",64.16,"2/12"],
-  [162,"03/07/2026","08/2026","Mercado Pago Visa 9695","AMAZONMKTPLC GAMESIRTE","Compras & Eletrônicos",46.50,"1/6"],
-  [163,"08/07/2026","08/2026","Mercado Pago Visa 9695","AMAZONMKTPLC GRUPOMULT","Compras & Eletrônicos",58.90,"1/10"],
-  [164,"10/07/2026","08/2026","Mercado Pago Visa 9695","MP CONECTCAR","Transporte & Combustível",16.34,"1/1"],
-  [165,"10/07/2026","08/2026","Mercado Pago Visa 9695","MP CONECTCAR","Transporte & Combustível",6.60,"1/1"],
-  [166,"16/07/2026","08/2026","Mercado Pago Visa 9695","CLARO FLEX","Serviços & Assinaturas",34.99,"1/1"],
-  [167,"21/07/2026","08/2026","Mercado Pago Visa 9695","CLAROTVMAIS Claro Tv","Serviços & Assinaturas",99.90,"1/1"],
-  [168,"22/07/2026","08/2026","Mercado Pago Visa 9695","MP MELIMAIS","Serviços & Assinaturas",9.90,"1/1"],
-  [169,"24/07/2026","08/2026","Mercado Pago Visa 9695","AMAZON BR Amazon BR","Compras & Eletrônicos",29.89,"1/1"],
-  [170,"26/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE MERCADOLIVRE","Compras & Eletrônicos",37.92,"1/1"],
-  [171,"26/07/2026","08/2026","Mercado Pago Visa 9695","MERCADOLIVRE*JJOIASPREMIU","Compras & Eletrônicos",24.96,"1/1"],
-  [172,"26/07/2026","08/2026","Mercado Pago Visa 9695","VIVO EASY VIVO EA","Serviços & Assinaturas",38.00,"1/1"],
-  [173,"28/07/2026","08/2026","Mercado Pago Visa 9695","EBN SPOTIFY","Serviços & Assinaturas",40.90,"1/1"],
-  // Agosto/2026 - Magalu
-  [174,"25/01/2026","08/2026","Magalu Visa 0189","SAMSUNG NO ITAU","Compras & Eletrônicos",81.00,"19/21"],
-  [175,"29/08/2025","08/2026","Magalu Visa 0189","EBN Canva","Serviços & Assinaturas",24.24,"12/12"],
-  [176,"14/12/2025","08/2026","Magalu Visa 0189","HTM JornadaLooker50","Serviços & Assinaturas",23.68,"8/12"],
-  [177,"05/01/2026","08/2026","Magalu Visa 0189","MAGAZINE LUIZA","Compras & Eletrônicos",201.98,"7/10"],
-  [178,"10/02/2026","08/2026","Magalu Visa 0189","LIVRO FACIL Livro","Compras & Eletrônicos",106.15,"6/9"],
-  [179,"07/07/2026","08/2026","Magalu Visa 0189","Google One","Serviços & Assinaturas",9.99,"1/1"],
-  [180,"15/07/2026","08/2026","Magalu Visa 0189","Google CapCut Video E","Serviços & Assinaturas",6.50,"1/1"],
-  [181,"20/07/2026","08/2026","Magalu Visa 0189","Google File Manager","Serviços & Assinaturas",23.99,"1/1"],
-  // Agosto/2026 - Itaú
-  [182,"13/06/2026","08/2026","Itaú Visa 5902","MARCONDES E FI","Compras & Eletrônicos",204.89,"2/10"],
-  [183,"17/06/2026","08/2026","Itaú Visa 5902","HEALTH RESENDE","Saúde & Farmácia",113.49,"2/10"],
-  [184,"23/06/2026","08/2026","Itaú Visa 5902","CINESHOW RESENDE","Lazer & Entretenimento",37.50,"2/6"],
-  [185,"29/07/2026","08/2026","Itaú Visa 5902","LOJAS AMERICANAS","Compras & Eletrônicos",80.21,"1/2"],
-  [186,"13/07/2026","08/2026","Itaú Visa 5902","ANTHROPIC CLAUDE SUB","Serviços & Assinaturas",116.75,"1/1"],
-  [187,"13/07/2026","08/2026","Itaú Visa 5902","REPASSE IOF INTERNACIONAL","Outros / Diversos",4.09,"1/1"],
-  // Agosto/2026 - Mercado Pago Maybi
-  [188,"05/07/2026","08/2026","Mercado Pago Visa 9433","DL UberRides","Transporte & Combustível",9.93,"1/1"],
-  [189,"13/07/2026","08/2026","Mercado Pago Visa 9433","DL UberRides","Transporte & Combustível",9.94,"1/1"],
-  [190,"13/07/2026","08/2026","Mercado Pago Visa 9433","DL UberRides","Transporte & Combustível",5.00,"1/1"],
-  [191,"15/07/2026","08/2026","Mercado Pago Visa 9433","MP MAYBI DA SILVA PETILLO","Outros / Diversos",88.39,"1/1"],
-  [192,"03/08/2026","08/2026","Mercado Pago Visa 9433","IOF DO ROTATIVO","Outros / Diversos",1.00,"1/1"],
-  [193,"03/08/2026","08/2026","Mercado Pago Visa 9433","JUROS DE MORA","Outros / Diversos",0.09,"1/1"],
-  [194,"03/08/2026","08/2026","Mercado Pago Visa 9433","JUROS DO ROTATIVO","Outros / Diversos",1.52,"1/1"],
-  [195,"03/08/2026","08/2026","Mercado Pago Visa 9433","MULTA POR ATRASO","Outros / Diversos",5.07,"1/1"]
-];
-
-let rawData = [...fallbackData];
-const futureMonthsList = [
-  '09/2026', '10/2026', '11/2026', '12/2026',
-  '01/2027', '02/2027', '03/2027', '04/2027',
-  '05/2027', '06/2027', '07/2027', '08/2027'
-];
-
+let rawData = [];
+let futureMonthsList = [];
 let catChart, cardChart, projectionChart;
 
 function parseCSV(text) {
@@ -431,10 +217,37 @@ function parseCSV(text) {
   return rows;
 }
 
+// Gera a lista de meses futuros baseada no mês mais recente da planilha
+function buildFutureMonthsList() {
+  const realMonths = [...new Set(rawData.map(r => r[2]))];
+  if (realMonths.length === 0) return;
+
+  const sortedReal = realMonths.sort((a, b) => {
+    const [mA, yA] = a.split('/').map(Number);
+    const [mB, yB] = b.split('/').map(Number);
+    return (yA * 100 + mA) - (yB * 100 + mB);
+  });
+
+  const lastReal = sortedReal[sortedReal.length - 1];
+  let [currM, currY] = lastReal.split('/').map(Number);
+
+  futureMonthsList = [];
+  for (let i = 0; i < 12; i++) {
+    currM++;
+    if (currM > 12) {
+      currM = 1;
+      currY++;
+    }
+    const mStr = String(currM).padStart(2, '0');
+    futureMonthsList.push(`${mStr}/${currY}`);
+  }
+}
+
 async function loadLiveSheetsData() {
-  if (!CSV_URL || CSV_URL === "SUA_URL_PUBLICA_DO_SHEETS_AQUI" || CSV_URL === "ocultei") {
-    initFilters();
-    renderDashboard();
+  const badge = document.getElementById('dataStatus');
+  if (!CSV_URL || CSV_URL === "SUA_URL_PUBLICA_DO_SHEETS_AQUI") {
+    badge.textContent = '● Configure a URL do Sheets';
+    badge.className = 'status-badge status-offline';
     return;
   }
 
@@ -442,19 +255,22 @@ async function loadLiveSheetsData() {
     const res = await fetch(CSV_URL + '&t=' + new Date().getTime());
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const csvText = await res.text();
-    const parsed = parseCSV(csvText);
+    rawData = parseCSV(csvText);
 
-    if (parsed.length > 0) {
-      rawData = parsed;
-      const badge = document.getElementById('dataStatus');
+    if (rawData.length > 0) {
       badge.textContent = '● Planilha Conectada (Ao Vivo)';
       badge.className = 'status-badge status-online';
+      buildFutureMonthsList();
+      initFilters();
+      renderDashboard();
+    } else {
+      badge.textContent = '● Planilha Vazia';
+      badge.className = 'status-badge status-offline';
     }
   } catch (err) {
-    console.error("Falha ao carregar dados remotos:", err);
-  } finally {
-    initFilters();
-    renderDashboard();
+    console.error("Falha ao carregar Google Sheets:", err);
+    badge.textContent = '● Erro de Conexão';
+    badge.className = 'status-badge status-offline';
   }
 }
 
@@ -466,25 +282,43 @@ function formatBRL(val) {
   return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-// OBTÉM DINAMICAMENTE APENAS O ÚLTIMO REGISTRO LANÇADO DE CADA COMPRA PARCELADA
+function normalizeKey(str) {
+  return (str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 function getLatestInstallments() {
   const latestMap = new Map();
   const allInstallments = rawData.filter(r => isParcelado(r[7]));
 
   allInstallments.forEach(r => {
-    // Chave única: Cartão + Estabelecimento
-    const key = `${r[3]}|${r[4]}`;
+    let cardGroup = normalizeKey(r[3]);
+    if (cardGroup.includes('magalu')) cardGroup = 'magalu';
+    else if (cardGroup.includes('mercadopago') || cardGroup.includes('mp')) cardGroup = 'mercadopago';
+    else if (cardGroup.includes('ourocard') || cardGroup.includes('bb')) cardGroup = 'bb';
+    else if (cardGroup.includes('itau')) cardGroup = 'itau';
+    else if (cardGroup.includes('bradesco')) cardGroup = 'bradesco';
+
+    const descNorm = normalizeKey(r[4]).substring(0, 8);
+    const valFixed = Number(r[6]).toFixed(2);
+    const key = `${cardGroup}_${descNorm}_${valFixed}`;
+    
     const [atualStr, totalStr] = r[7].split('/');
-    const atual = parseInt(atualStr);
-    const total = parseInt(totalStr);
+    const atual = parseInt(atualStr, 10);
+    const total = parseInt(totalStr, 10);
+
+    const [mes, ano] = r[2].split('/');
+    const scoreCompetencia = parseInt(ano + mes, 10);
 
     if (!latestMap.has(key)) {
-      latestMap.set(key, { ...r, atual, total, rawRow: r });
+      latestMap.set(key, { ...r, atual, total, scoreCompetencia, rawRow: r });
     } else {
       const existing = latestMap.get(key);
-      // Mantém apenas o registro com a parcela mais recente
-      if (atual > existing.atual) {
-        latestMap.set(key, { ...r, atual, total, rawRow: r });
+      if (scoreCompetencia > existing.scoreCompetencia || (scoreCompetencia === existing.scoreCompetencia && atual > existing.atual)) {
+        latestMap.set(key, { ...r, atual, total, scoreCompetencia, rawRow: r });
       }
     }
   });
@@ -492,7 +326,6 @@ function getLatestInstallments() {
   return Array.from(latestMap.values());
 }
 
-// GERA OS ITENS DO MÊS FUTURO SEM NENHUMA DUPLICIDADE
 function generateFutureData(targetMonth) {
   const futureIndex = futureMonthsList.indexOf(targetMonth);
   if (futureIndex === -1) return [];
@@ -500,11 +333,21 @@ function generateFutureData(targetMonth) {
   const latestList = getLatestInstallments();
   const futureItems = [];
 
+  const realMonths = [...new Set(rawData.map(r => r[2]))].sort((a, b) => {
+    const [mA, yA] = a.split('/').map(Number);
+    const [mB, yB] = b.split('/').map(Number);
+    return (yA * 100 + mA) - (yB * 100 + mB);
+  });
+  const maxMonth = realMonths[realMonths.length - 1];
+
   latestList.forEach((item, idx) => {
-    const offset = futureIndex + 1;
+    let offset = futureIndex + 1;
+    if (item.rawRow[2] !== maxMonth) {
+      offset += 1;
+    }
+
     const novaParcelaNum = item.atual + offset;
 
-    // Se a parcela calculada ainda está dentro do total contratado
     if (novaParcelaNum <= item.total) {
       futureItems.push([
         `FUT-${idx + 1}`,
@@ -523,7 +366,11 @@ function generateFutureData(targetMonth) {
 }
 
 function initFilters() {
-  const realMonths = [...new Set(rawData.map(r => r[2]))].sort();
+  const realMonths = [...new Set(rawData.map(r => r[2]))].sort((a, b) => {
+    const [mA, yA] = a.split('/').map(Number);
+    const [mB, yB] = b.split('/').map(Number);
+    return (yA * 100 + mA) - (yB * 100 + mB);
+  });
   const cards = [...new Set(rawData.map(r => r[3]))].sort();
   const categories = [...new Set(rawData.map(r => r[5]))].sort();
 
@@ -650,7 +497,12 @@ function updateCharts(catData, cardData, selectedMonth) {
   if (cardChart) cardChart.destroy();
   if (projectionChart) projectionChart.destroy();
 
-  const realMonths = [...new Set(rawData.map(r => r[2]))].sort();
+  const realMonths = [...new Set(rawData.map(r => r[2]))].sort((a, b) => {
+    const [mA, yA] = a.split('/').map(Number);
+    const [mB, yB] = b.split('/').map(Number);
+    return (yA * 100 + mA) - (yB * 100 + mB);
+  });
+
   const timelineLabels = [...realMonths, ...futureMonthsList];
   const timelineData = timelineLabels.map(m => {
     if (realMonths.includes(m)) return rawData.filter(r => r[2] === m).reduce((a, b) => a + b[6], 0);
