@@ -258,7 +258,7 @@ async function loadLiveSheetsData() {
     rawData = parseCSV(csvText);
 
     if (rawData.length > 0) {
-      badge.textContent = '● Planilha Conectada (Ao Vivo)';
+      badge.textContent = '● Sincronizado via Nuvem';
       badge.className = 'status-badge status-online';
       buildFutureMonthsList();
       initFilters();
